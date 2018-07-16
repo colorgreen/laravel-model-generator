@@ -1,6 +1,7 @@
 {
     "name": "colorgreen/generator",
     "description": "Generating models",
+    "keywords": ["laravel", "generator", "model"],
     "require": {
         "laracademy/generators": "^1.3"
     },
@@ -9,5 +10,10 @@
             "name": "Korneliusz Szymanski",
             "email": "colorgreen19@gmail.com"
         }
-    ]
+    ],
+    "autoload": {
+        "psr-4": {
+            "Colorgreen\\Generator\\": "src/"
+        }
+    }
 }

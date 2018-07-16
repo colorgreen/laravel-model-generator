@@ -155,7 +155,7 @@ php artisan generate:modelfromtable --table=user --folder=app\Models
 
 ## Credits
 
-Based on [Laracadeny Geberators](https://github.com/laracademy/generators)
+Based on [Laracadeny Generators](https://github.com/laracademy/generators)
 
 
 ## License
