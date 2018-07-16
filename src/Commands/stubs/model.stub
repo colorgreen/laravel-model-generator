@@ -1,0 +1,10 @@
+<?php
+
+namespace {{modelnamespace}};
+
+use {{modelnamespace}}\Base\Base{{class}};
+
+class {{class}} extends Base{{class}}
+{
+
+}
