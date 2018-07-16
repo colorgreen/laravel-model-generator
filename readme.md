@@ -62,7 +62,7 @@ class BasePage extends BaseModel
 ### Step 1: Install through Composer
 
 ```
-composer require "colorgreen/generator"
+composer require colorgreen/generator
 ```
 
 ### Step 2: Add the Service Provider
