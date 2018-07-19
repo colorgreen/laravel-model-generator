@@ -192,7 +192,9 @@ class GenerateModelCommand extends ModelFromTableCommand
 
     public function getRules( $info )
     {
-        $rules = $info["null"] ? 'nullable' : 'required';
+        if( $info['field'] == 'id' )
+            $rules = 'nullable';
+        else $rules = $info["null"] ? 'nullable' : 'required';
 
         $length = $this->getLenght( $info['type'] );
 
