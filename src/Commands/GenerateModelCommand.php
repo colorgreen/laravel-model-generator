@@ -9,7 +9,9 @@
 
 namespace Colorgreen\Generator\Commands;
 
+use Illuminate\Support\Facades\DB;
 use Laracademy\Generators\Commands\ModelFromTableCommand;
+use Illuminate\Support\Facades\Schema;
 
 class GenerateModelCommand extends ModelFromTableCommand
 {
@@ -24,6 +26,7 @@ class GenerateModelCommand extends ModelFromTableCommand
 
     public $rules;
     public $properties;
+    public $modelRelations;
 
     /**
      * Create a new command instance.
@@ -165,12 +168,37 @@ class GenerateModelCommand extends ModelFromTableCommand
 
             $this->rules .= ( strlen( $this->rules ) > 0 ? ', ' : '' )."\n\t\t'$field' => '".$this->getRules( $column )."'";
             $this->properties .= "\n * @property ".$this->getPhpType( $column )." ".$field;
+            $this->modelRelations .= $this->getRelationTemplate( $column );
         }
         $this->rules .= "\n\t";
 
+        $this->modelRelations .= $this->getRelationsForModel();
+
         $stub = str_replace( '{{rules}}', $this->rules, $stub );
         $stub = str_replace( '{{properties}}', $this->properties, $stub );
+        $stub = str_replace( '{{relations}}', $this->modelRelations, $stub );
         return $stub;
+    }
+
+    public function getRelationsForModel()
+    {
+        $s = '';
+        $searchedColumnName = snake_case( $this->options['model_name']."_id" );
+
+        foreach( $this->getAllTables() as $table ){
+
+            if( in_array( $searchedColumnName,$this->getTableColumns($table))){
+
+                $name = str_singular($table);
+                $relatedModel = $this->options['namespace']."\\".studly_case(str_singular($table));
+
+                $s .= "\tpublic function $name() {\n".
+                    "\t\treturn \$this->hasOne('$relatedModel', '$searchedColumnName' );\n".
+                    "\t}\n";
+            }
+        }
+
+        return $s;
     }
 
     public function getPhpType( $info )
@@ -220,6 +248,49 @@ class GenerateModelCommand extends ModelFromTableCommand
         return $rules;
     }
 
+    public function getRelationTemplate( $column )
+    {
+        $foreignKey = $column['field'];
+
+        if( strpos( $foreignKey, '_id' ) === false )
+            return '';
+
+        if( $foreignKey != 'id' ) {
+            $tablename = $this->getTableName( $foreignKey );
+
+            if( $tablename !== null ) {
+                $modelname = str_singular( studly_case( $tablename ) );
+                $relatedModel = $this->options['namespace']."\\".$modelname;
+
+                $name = lcfirst( $modelname );
+
+                $s = "\tpublic function $name() {\n".
+                    "\t\treturn \$this->belongsTo('$relatedModel', '$foreignKey' );\n".
+                    "\t}\n";
+
+                return $s;
+            }
+        }
+
+        return '';
+    }
+
+    private function getTableName( $foreignKey )
+    {
+        $tables = $this->getAllTables()->toArray();
+        rsort( $tables );
+
+        $matches = preg_grep( "/".substr( $foreignKey, 0, strlen( $foreignKey ) - 3 )."/", $tables );
+        if( array_values( $matches )[0] !== null )
+            return array_values( $matches )[0];
+        return null;
+    }
+
+    public function getTableColumns( $table )
+    {
+        return Schema::getColumnListing( $table );
+    }
+
     private function getLenght( $text )
     {
         preg_match( "/\d+/", $text, $output_array );
@@ -248,8 +319,7 @@ class GenerateModelCommand extends ModelFromTableCommand
     /**
      * returns all the options that the user specified.
      */
-    public
-    function getOptions()
+    public function getOptions()
     {
         // model name
         $this->options['model_name'] = ( $this->option( 'model_name' ) ) ?: '';
@@ -279,8 +349,7 @@ class GenerateModelCommand extends ModelFromTableCommand
         $this->options['table'] = ( $this->option( 'table' ) ) ? $this->option( 'table' ) : '';
     }
 
-    protected
-    function makeDirectory( $path )
+    protected function makeDirectory( $path )
     {
         if( !is_dir( $path ) ) {
             return mkdir( $path, 0755, true );
@@ -295,8 +364,7 @@ class GenerateModelCommand extends ModelFromTableCommand
      *
      * @return string
      */
-    public
-    function getStub()
+    public function getStub()
     {
         return __DIR__.'/stubs/model.stub';
     }
@@ -306,8 +374,7 @@ class GenerateModelCommand extends ModelFromTableCommand
      *
      * @return string
      */
-    public
-    function getBaseStub()
+    public function getBaseStub()
     {
         return __DIR__.'/stubs/basemodel.stub';
     }

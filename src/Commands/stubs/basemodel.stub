@@ -19,6 +19,8 @@ class Base{{class}} extends BaseModel
 
     protected static $rules = [{{rules}}];
 
+{{relations}}
+
     /**
      * The database table used by the model.
      *
