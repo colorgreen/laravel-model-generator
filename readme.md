@@ -1,8 +1,10 @@
 # Laravel model generator
 
-Simple generator base on laracademu/generators, extending model generation. Create or update model base on existing table. 
+Simple generator base on laracademu/generators, extending model generation. Generates model like in Yii framework. Create or update model base on existing table. 
 
 Create BaseModel and Model. If there are changes on table schema, regenerating (the same command) process will change only BaseModel (new rules, fields, etc), so write your logic in Model class to prevent it from overriding.
+
+Also base relations are generated to the models (relation ```hasOne()``` and ```belongsTo()``` ).
 
 Base<xxx> extends Colorgreen\Generator\Models\BaseModel which provide on model validation.
 ```
@@ -32,6 +34,9 @@ use Colorgreen\Generator\Models\BaseModel;
  * @property boolean active
  * @property int count
  * @property string email
+ 
+ * @property int redirect_type_id
+ * @property \App\Models\RedirectType redirect_type
  */
 class BasePage extends BaseModel
 {
@@ -42,6 +47,11 @@ class BasePage extends BaseModel
 		'count' => 'nullable|numeric|integer', 
 		'email' => 'required|string|max:100|email'
 	];
+	
+	
+	public function redirect_type() {
+		return $this->belongsTo('App\Models\RedirectType', 'redirect_type_id' );
+	}
 
     protected $table = 'pages';
 
