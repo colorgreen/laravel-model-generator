@@ -168,11 +168,11 @@ class GenerateModelCommand extends ModelFromTableCommand
 
             $this->rules .= ( strlen( $this->rules ) > 0 ? ', ' : '' )."\n\t\t'$field' => '".$this->getRules( $column )."'";
             $this->properties .= "\n * @property ".$this->getPhpType( $column )." ".$field;
-            $this->modelRelations .= $this->getRelationTemplate( $column );
+            $this->modelRelations .= $this->getRelationTemplate( $column, $this->properties );
         }
         $this->rules .= "\n\t";
 
-        $this->modelRelations .= $this->getRelationsForModel();
+        $this->modelRelations .= $this->getRelationsForModel( $this->properties );
 
         $stub = str_replace( '{{rules}}', $this->rules, $stub );
         $stub = str_replace( '{{properties}}', $this->properties, $stub );
@@ -180,7 +180,7 @@ class GenerateModelCommand extends ModelFromTableCommand
         return $stub;
     }
 
-    public function getRelationsForModel()
+    public function getRelationsForModel( &$properties )
     {
         $s = '';
         $searchedColumnName = snake_case( $this->options['model_name']."_id" );
@@ -191,6 +191,8 @@ class GenerateModelCommand extends ModelFromTableCommand
 
                 $name = str_singular($table);
                 $relatedModel = $this->options['namespace']."\\".studly_case(str_singular($table));
+
+                $properties .= "\n * @property \\".$relatedModel." ".$name;
 
                 $s .= "\tpublic function $name() {\n".
                     "\t\treturn \$this->hasOne('$relatedModel', '$searchedColumnName' );\n".
@@ -248,7 +250,7 @@ class GenerateModelCommand extends ModelFromTableCommand
         return $rules;
     }
 
-    public function getRelationTemplate( $column )
+    public function getRelationTemplate( $column, &$properties )
     {
         $foreignKey = $column['field'];
 
@@ -262,7 +264,9 @@ class GenerateModelCommand extends ModelFromTableCommand
                 $modelname = str_singular( studly_case( $tablename ) );
                 $relatedModel = $this->options['namespace']."\\".$modelname;
 
-                $name = lcfirst( $modelname );
+                $name = str_singular( $tablename );
+
+                $properties .= "\n * @property \\".$relatedModel." ".$name;
 
                 $s = "\tpublic function $name() {\n".
                     "\t\treturn \$this->belongsTo('$relatedModel', '$foreignKey' );\n".
