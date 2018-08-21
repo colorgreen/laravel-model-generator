@@ -2,8 +2,6 @@
 
 namespace {{modelnamespace}}\Base;
 
-use Colorgreen\Generator\Models\BaseModel;
-
 /**
  * Class Base{{class}}
  * @property array $fillable
@@ -13,7 +11,7 @@ use Colorgreen\Generator\Models\BaseModel;
  * @property array $rules
  * {{properties}}
  */
-class Base{{class}} extends BaseModel
+class Base{{class}} extends {{baseclass}}
 {
     {{connection}}
 
