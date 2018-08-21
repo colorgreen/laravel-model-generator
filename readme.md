@@ -1,6 +1,6 @@
 # Laravel model generator
 
-Simple generator base on laracademu/generators, extending model generation. Generates model like in Yii framework. Create or update model base on existing table. 
+Simple generator base on laracademy/generators, extending model generation. Generates model like in Yii framework. Create or update model base on existing table. 
 
 Create BaseModel and Model. If there are changes on table schema, regenerating (the same command) process will change only BaseModel (new rules, fields, etc), so write your logic in Model class to prevent it from overriding.
 

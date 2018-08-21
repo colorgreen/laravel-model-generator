@@ -1,5 +1,5 @@
 {
-    "name": "colorgreen/generator",
+    "name": "colorgreen/laravel-model-generator",
     "description": "Generating models",
     "keywords": ["laravel", "generator", "model"],
     "require": {
