@@ -104,7 +104,7 @@ This command will read your database table and generate a model based on that ta
 You can use this command to generate a single table, multiple tables or all of your tables at once.
 
 * --name=
-  * Use this if you want custom model name. E.g. --name=Page when table name is 'pages' and you want to name your model ```Page``` instead of default ```Pages```.
+  * Use this for custom model name. Default is table name in studle_case and singular. E.g. --name=Page when table name is 'pages' and you want to name your model ```MyPage```.
   * If you use this command provide also one table in --table.
 * --table=
   * This parameter if filled in will generate a model for the given table.
@@ -133,12 +133,14 @@ You can use this command to generate a single table, multiple tables or all of y
 
 ```
 php artisan generate:modelfromtable --table=users
+
 ```
+Will generate model with name User
 
 ### Generating a single table with custom model name
 
 ```
-php artisan generate:modelfromtable --model_name=User --table=users
+php artisan generate:modelfromtable --model_name=MyUser --table=users
 ```
 
 ### Generating a multiple tables

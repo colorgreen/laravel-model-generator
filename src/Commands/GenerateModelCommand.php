@@ -95,17 +95,23 @@ class GenerateModelCommand extends ModelFromTableCommand
 
         // cycle through each table
         foreach( $tables as $table ) {
+            $this->rules = null;
+            $this->properties = null;
+            $this->modelRelations = null;
+
             // grab a fresh copy of our stub
             $stub = $modelStub;
             $basestub = $basemodelStub;
 
-            // generate the file name for the model based on the table name
-            $filename = $this->options['name'] != '' ? $this->options['name'] : studly_case( $table );
-            $fullPath = "$path/$filename.php";
-            $fullBasePath = "$basepath/Base$filename.php";
+            $tablename = $this->options['name'] != '' ? $this->options['name'] : $table;
 
-            $this->doComment( "Generating file: $filename.php" );
-            $this->doComment( "Generating file: /Base/Base$filename.php" );
+            // generate the file name for the model based on the table name
+            $classname = $this->options['name'] != '' ? $this->options['name'] : studly_case( str_singular($table) );
+            $fullPath = "$path/$classname.php";
+            $fullBasePath = "$basepath/Base$classname.php";
+
+            $this->doComment( "Generating file: $classname.php" );
+            $this->doComment( "Generating file: /Base/Base$classname.php" );
 
             // gather information on it
             $model = [
@@ -133,14 +139,14 @@ class GenerateModelCommand extends ModelFromTableCommand
             // reset fields
             $this->resetFields();
 
-            $stub = $this->replaceClassName( $stub, $this->options['name'] != '' ? $this->options['name'] : $table );
+            $stub = $this->replaceClassName( $stub, $tablename );
             $stub = $this->replaceModuleInformation( $stub, $model );
             $stub = $this->replaceConnection( $stub, $this->options['connection'] );
 
-            $basestub = $this->replaceClassName( $basestub, $this->options['name'] != '' ? $this->options['name'] : $table );
+            $basestub = $this->replaceClassName( $basestub, $tablename );
             $basestub = $this->replaceBaseClassName( $basestub, $this->options['base'] );
             $basestub = $this->replaceModuleInformation( $basestub, $model );
-            $basestub = $this->replaceRulesAndProperties( $basestub, $this->columns );
+            $basestub = $this->replaceRulesAndProperties( $basestub, $this->columns, $tablename );
             $basestub = $this->replaceConnection( $basestub, $this->options['connection'] );
 
             // writing stub out
@@ -169,12 +175,25 @@ class GenerateModelCommand extends ModelFromTableCommand
      *
      * @return string stub content
      */
+    public function replaceClassName($stub, $tableName)
+    {
+        return str_replace('{{class}}', studly_case(str_singular($tableName)), $stub);
+    }
+
+    /**
+     * replaces the class name in the stub.
+     *
+     * @param string $stub      stub content
+     * @param string $tableName the name of the table to make as the class
+     *
+     * @return string stub content
+     */
     public function replaceBaseClassName($stub, $baseclass)
     {
         return str_replace('{{baseclass}}', studly_case($baseclass), $stub);
     }
 
-    public function replaceRulesAndProperties( $stub, $columns )
+    public function replaceRulesAndProperties( $stub, $columns, $tablename )
     {
         $this->rules = '';
         $this->properties = '';
@@ -187,7 +206,7 @@ class GenerateModelCommand extends ModelFromTableCommand
         }
         $this->rules .= "\n\t";
 
-        $this->modelRelations .= $this->getRelationsForModel( $this->properties );
+        $this->modelRelations .= $this->getRelationsForModel( $this->properties, $tablename );
 
         $stub = str_replace( '{{rules}}', $this->rules, $stub );
         $stub = str_replace( '{{properties}}', $this->properties, $stub );
@@ -195,10 +214,10 @@ class GenerateModelCommand extends ModelFromTableCommand
         return $stub;
     }
 
-    public function getRelationsForModel( &$properties )
+    public function getRelationsForModel( &$properties, $tablename )
     {
         $s = '';
-        $searchedColumnName = snake_case( $this->options['name']."_id" );
+        $searchedColumnName = snake_case( str_singular($tablename)."_id" );
 
         foreach( $this->getAllTables() as $table ){
 
@@ -230,7 +249,7 @@ class GenerateModelCommand extends ModelFromTableCommand
                 return 'boolean';
             else if( $type != null )
                 return 'int';
-            return 'double';
+            return 'float';
         }
         return 'string';
     }
