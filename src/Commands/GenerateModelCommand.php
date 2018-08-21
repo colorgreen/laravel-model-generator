@@ -344,7 +344,7 @@ class GenerateModelCommand extends ModelFromTableCommand
         $this->options['name'] = ( $this->option( 'name' ) ) ?: '';
 
         // base model
-        $this->options['base'] = $this->option( 'base' ) ?: 'Colorgreen\\Generator\\Models\\BaseModel';
+        $this->options['base'] = $this->option( 'base' ) ?: '\\Colorgreen\\Generator\\Models\\BaseModel';
 
         // debug
         $this->options['debug'] = ( $this->option( 'debug' ) ) ? true : false;
