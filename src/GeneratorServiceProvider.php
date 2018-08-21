@@ -2,8 +2,8 @@
 
 namespace Colorgreen\Generator;
 
+use Colorgreen\Generator\Commands\GenerateModelCommand;
 use Illuminate\Support\ServiceProvider;
-use \Colorgreen\Generator\Commands;
 
 class GeneratorServiceProvider extends ServiceProvider
 {
@@ -16,7 +16,7 @@ class GeneratorServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
-                Commands\GenerateModelCommand::class
+                GenerateModelCommand::class
             ]);
         }
     }
