@@ -103,16 +103,18 @@ This command will read your database table and generate a model based on that ta
 
 You can use this command to generate a single table, multiple tables or all of your tables at once.
 
-* --model_name=
-  * Use this if you want custom model name. E.g. table name is 'pages' and you want to name your model ```Page``` instead of default ```Pages```.
+* --name=
+  * Use this if you want custom model name. E.g. --name=Page when table name is 'pages' and you want to name your model ```Page``` instead of default ```Pages```.
   * If you use this command provide also one table in --table.
 * --table=
   * This parameter if filled in will generate a model for the given table.
-   * You can also pass in a list of tables using comma separated values.
+  * You can also pass in a list of tables using comma separated values.
+* --base=
+  * Use if you want to have custom BaseModel. E.g. --base=\App\Models\MyBaseModel.
 * --all
   * If this flag is present, then the table command will be ignored.
-   * This will generate a model for **all** tables found in your database.
-   * _please note that this command will only ignore the `migrations` table and no model will be generate for it_
+  * This will generate a model for **all** tables found in your database.
+  * _please note that this command will only ignore the `migrations` table and no model will be generate for it_
 * --connection=
   * by default if this option is omitted then the generate will use the default connection found in `config/database.php`
   * To specify a connection ensure that it exists in your `config/database.php` first.
