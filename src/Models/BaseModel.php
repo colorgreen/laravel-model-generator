@@ -8,8 +8,6 @@ use Illuminate\Support\Facades\Validator;
 /**
  * Class BaseModel
  * @package Colorgreen\Generator\Models
- * @property array $rules
- * @property array $errors
  */
 class BaseModel extends Model
 {

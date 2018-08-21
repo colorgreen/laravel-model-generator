@@ -9,15 +9,15 @@
 
 namespace Colorgreen\Generator\Commands;
 
-use Illuminate\Support\Facades\DB;
 use Laracademy\Generators\Commands\ModelFromTableCommand;
 use Illuminate\Support\Facades\Schema;
 
 class GenerateModelCommand extends ModelFromTableCommand
 {
     protected $signature = 'cgenerator:modelfromtable
-                            {--model_name= : Model name. If set, only 1 table is required in --table }
+                            {--name= : Model name. If set, only 1 table is required in --table }
                             {--table= : a single table or a list of tables separated by a comma (,)}
+                            {--base= : Base model name. Default Colorgreen\Generator\Models\BaseModel }
                             {--connection= : database connection to use, leave off and it will use the .env connection}
                             {--debug : turns on debugging}
                             {--folder= : by default models are stored in app, but you can change that}
@@ -38,9 +38,10 @@ class GenerateModelCommand extends ModelFromTableCommand
         parent::__construct();
 
         $this->options = [
-            'model_name' => '',
+            'name' => '',
             'connection' => '',
             'table' => '',
+            'base' => '',
             'folder' => app()->path(),
             'debug' => false,
             'all' => false,
@@ -70,8 +71,8 @@ class GenerateModelCommand extends ModelFromTableCommand
             return;
         }
 
-        if( strlen( $this->options['model_name'] ) > 0 && strpos( ",", $this->options['table'] ) !== false ) {
-            $this->error( 'If model_name is set, pass only 1 table' );
+        if( strlen( $this->options['name'] ) > 0 && strpos( ",", $this->options['table'] ) !== false ) {
+            $this->error( 'If name is set, pass only 1 table' );
 
             return;
         }
@@ -99,7 +100,7 @@ class GenerateModelCommand extends ModelFromTableCommand
             $basestub = $basemodelStub;
 
             // generate the file name for the model based on the table name
-            $filename = $this->options['model_name'] != '' ? $this->options['model_name'] : studly_case( $table );
+            $filename = $this->options['name'] != '' ? $this->options['name'] : studly_case( $table );
             $fullPath = "$path/$filename.php";
             $fullBasePath = "$basepath/Base$filename.php";
 
@@ -132,11 +133,12 @@ class GenerateModelCommand extends ModelFromTableCommand
             // reset fields
             $this->resetFields();
 
-            $stub = $this->replaceClassName( $stub, $this->options['model_name'] != '' ? $this->options['model_name'] : $table );
+            $stub = $this->replaceClassName( $stub, $this->options['name'] != '' ? $this->options['name'] : $table );
             $stub = $this->replaceModuleInformation( $stub, $model );
             $stub = $this->replaceConnection( $stub, $this->options['connection'] );
 
-            $basestub = $this->replaceClassName( $basestub, $this->options['model_name'] != '' ? $this->options['model_name'] : $table );
+            $basestub = $this->replaceClassName( $basestub, $this->options['name'] != '' ? $this->options['name'] : $table );
+            $basestub = $this->replaceBaseClassName( $basestub, $this->options['base'] );
             $basestub = $this->replaceModuleInformation( $basestub, $model );
             $basestub = $this->replaceRulesAndProperties( $basestub, $this->columns );
             $basestub = $this->replaceConnection( $basestub, $this->options['connection'] );
@@ -157,6 +159,19 @@ class GenerateModelCommand extends ModelFromTableCommand
         }
 
         $this->info( 'Complete' );
+    }
+
+    /**
+     * replaces the class name in the stub.
+     *
+     * @param string $stub      stub content
+     * @param string $tableName the name of the table to make as the class
+     *
+     * @return string stub content
+     */
+    public function replaceBaseClassName($stub, $baseclass)
+    {
+        return str_replace('{{baseclass}}', studly_case($baseclass), $stub);
     }
 
     public function replaceRulesAndProperties( $stub, $columns )
@@ -183,7 +198,7 @@ class GenerateModelCommand extends ModelFromTableCommand
     public function getRelationsForModel( &$properties )
     {
         $s = '';
-        $searchedColumnName = snake_case( $this->options['model_name']."_id" );
+        $searchedColumnName = snake_case( $this->options['name']."_id" );
 
         foreach( $this->getAllTables() as $table ){
 
@@ -326,7 +341,10 @@ class GenerateModelCommand extends ModelFromTableCommand
     public function getOptions()
     {
         // model name
-        $this->options['model_name'] = ( $this->option( 'model_name' ) ) ?: '';
+        $this->options['name'] = ( $this->option( 'name' ) ) ?: '';
+
+        // base model
+        $this->options['base'] = $this->option( 'base' ) ?: '\\Colorgreen\\Generator\\Models\\BaseModel';
 
         // debug
         $this->options['debug'] = ( $this->option( 'debug' ) ) ? true : false;
