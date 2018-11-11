@@ -111,6 +111,8 @@ You can use this command to generate a single table, multiple tables or all of y
   * You can also pass in a list of tables using comma separated values.
 * --base=
   * Use if you want to have custom BaseModel. E.g. --base=\App\Models\MyBaseModel.
+* --prefix=
+  * Set prefix of tables. E.g table 'cms_user_permissions' generate model 'UserPermission'
 * --all
   * If this flag is present, then the table command will be ignored.
   * This will generate a model for **all** tables found in your database.
