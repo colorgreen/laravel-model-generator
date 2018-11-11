@@ -18,6 +18,7 @@ class GenerateModelCommand extends ModelFromTableCommand
                             {--name= : Model name. If set, only 1 table is required in --table }
                             {--table= : a single table or a list of tables separated by a comma (,)}
                             {--base= : Base model name. Default Colorgreen\Generator\Models\BaseModel }
+                            {--prefix= : Table prefix }
                             {--connection= : database connection to use, leave off and it will use the .env connection}
                             {--debug : turns on debugging}
                             {--folder= : by default models are stored in app, but you can change that}
@@ -45,6 +46,7 @@ class GenerateModelCommand extends ModelFromTableCommand
             'folder' => app()->path(),
             'debug' => false,
             'all' => false,
+            'prefix' => '',
         ];
     }
 
@@ -104,9 +106,10 @@ class GenerateModelCommand extends ModelFromTableCommand
             $basestub = $basemodelStub;
 
             $tablename = $this->options['name'] != '' ? $this->options['name'] : $table;
+            $tablename = $this->getTableWithoutPrefix($tablename);
 
             // generate the file name for the model based on the table name
-            $classname = $this->options['name'] != '' ? $this->options['name'] : studly_case( str_singular($table) );
+            $classname = $this->options['name'] != '' ? $this->options['name'] : studly_case( str_singular($tablename) );
             $fullPath = "$path/$classname.php";
             $fullBasePath = "$basepath/Base$classname.php";
 
@@ -220,16 +223,18 @@ class GenerateModelCommand extends ModelFromTableCommand
         $searchedColumnName = snake_case( str_singular($tablename)."_id" );
 
         foreach( $this->getAllTables() as $table ){
-
             if( in_array( $searchedColumnName,$this->getTableColumns($table))){
+                $table = $this->getTableWithoutPrefix($table);
 
-                $name = str_singular($table);
+//                $name = str_singular($table);
+                $name = $table;
                 $relatedModel = $this->options['namespace']."\\".studly_case(str_singular($table));
 
-                $properties .= "\n * @property \\".$relatedModel." ".$name;
+                $properties .= "\n * @property \\".$relatedModel."[] ".$name;
 
-                $s .= "\tpublic function $name() {\n".
-                    "\t\treturn \$this->hasOne('$relatedModel', '$searchedColumnName' );\n".
+                $s .= "\t//TODO check if relation shouldn't be OneToOne ( hasOne() )\n".
+                    "\tpublic function $name() {\n".
+                    "\t\treturn \$this->hasMany('$relatedModel', '$searchedColumnName' );\n".
                     "\t}\n";
             }
         }
@@ -292,7 +297,8 @@ class GenerateModelCommand extends ModelFromTableCommand
             return '';
 
         if( $foreignKey != 'id' ) {
-            $tablename = $this->getTableName( $foreignKey );
+            $tablename = $this->getTableNameByForeignKey( $foreignKey );
+            $tablename = $this->getTableWithoutPrefix( $tablename );
 
             if( $tablename !== null ) {
                 $modelname = str_singular( studly_case( $tablename ) );
@@ -313,10 +319,13 @@ class GenerateModelCommand extends ModelFromTableCommand
         return '';
     }
 
-    private function getTableName( $foreignKey )
+    private function getTableNameByForeignKey( $foreignKey )
     {
         $tables = $this->getAllTables()->toArray();
         rsort( $tables );
+        $tables = array_map(function($x){
+            return $this->getTableWithoutPrefix($x);
+        }, $tables);
 
         $matches = preg_grep( "/".substr( $foreignKey, 0, strlen( $foreignKey ) - 3 )."/", $tables );
         if( array_values( $matches )[0] !== null )
@@ -388,6 +397,12 @@ class GenerateModelCommand extends ModelFromTableCommand
 
         // single or list of tables
         $this->options['table'] = ( $this->option( 'table' ) ) ? $this->option( 'table' ) : '';
+        
+        $this->options['prefix'] = ( $this->option( 'prefix' ) ) ? $this->option( 'prefix' ) : '';
+    }
+
+    protected function getTableWithoutPrefix($table){
+        return preg_replace( "/^".$this->options['prefix']."/", '', $table );
     }
 
     protected function makeDirectory( $path )
