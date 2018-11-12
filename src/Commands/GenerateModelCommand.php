@@ -328,6 +328,10 @@ class GenerateModelCommand extends ModelFromTableCommand
         }, $tables);
 
         $matches = preg_grep( "/".substr( $foreignKey, 0, strlen( $foreignKey ) - 3 )."/", $tables );
+
+        if( $matches == null )
+            return null;
+
         if( array_values( $matches )[0] !== null )
             return array_values( $matches )[0];
         return null;
