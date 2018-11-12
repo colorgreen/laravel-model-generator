@@ -298,23 +298,27 @@ class GenerateModelCommand extends ModelFromTableCommand
 
         if( $foreignKey != 'id' ) {
             $tablename = $this->getTableNameByForeignKey( $foreignKey );
-            $tablename = $this->getTableWithoutPrefix( $tablename );
+            if( $tablename != null ){
 
-            if( $tablename !== null ) {
-                $modelname = str_singular( studly_case( $tablename ) );
-                $relatedModel = $this->options['namespace']."\\".$modelname;
+                $tablename = $this->getTableWithoutPrefix( $tablename );
 
-                $name = str_singular( $tablename );
+                if( $tablename !== null ) {
+                    $modelname = str_singular( studly_case( $tablename ) );
+                    $relatedModel = $this->options['namespace']."\\".$modelname;
 
-                $properties .= "\n * @property \\".$relatedModel." ".$name;
+                    $name = str_singular( $tablename );
 
-                $s = "\tpublic function $name() {\n".
-                    "\t\treturn \$this->belongsTo('$relatedModel', '$foreignKey' );\n".
-                    "\t}\n";
+                    $properties .= "\n * @property \\".$relatedModel." ".$name;
 
-                return $s;
+                    $s = "\tpublic function $name() {\n".
+                        "\t\treturn \$this->belongsTo('$relatedModel', '$foreignKey' );\n".
+                        "\t}\n";
+
+                    return $s;
+                }
             }
         }
+
 
         return '';
     }
