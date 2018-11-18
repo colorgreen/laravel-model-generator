@@ -205,7 +205,7 @@ class GenerateModelCommand extends ModelFromTableCommand
             $field = $column['field'];
 
             $this->rules .= ( strlen( $this->rules ) > 0 ? ', ' : '' )."\n\t\t'$field' => '".$this->getRules( $column )."'";
-            $this->properties .= "\n * @property ".$this->getPhpType( $column )." ".$field;
+            $this->properties .= "\n * @property ".$this->getPhpType( $column['type'] )." ".$field;
             $this->modelRelations .= $this->getRelationTemplate( $column, $this->properties );
         }
         $this->rules .= "\n\t";
@@ -243,13 +243,12 @@ class GenerateModelCommand extends ModelFromTableCommand
         return $s;
     }
 
-    public function getPhpType( $info )
+    public function getPhpType( $columnType )
     {
+        $length = $this->getLenght( $columnType );
 
-        $length = $this->getLenght( $info['type'] );
-
-        if( $this->isNumeric( $info['type'] ) != null ) {
-            $type = $this->isInteger( $info['type'] );
+        if( $this->isNumeric( $columnType ) != null ) {
+            $type = $this->isInteger( $columnType );
 
             if( $length == '1' )
                 return 'boolean';
