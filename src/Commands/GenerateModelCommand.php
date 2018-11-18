@@ -106,10 +106,10 @@ class GenerateModelCommand extends ModelFromTableCommand
             $basestub = $basemodelStub;
 
             $tablename = $this->options['name'] != '' ? $this->options['name'] : $table;
-            $tablename = $this->getTableWithoutPrefix($tablename);
+            $tablename = $this->getTableWithoutPrefix( $tablename );
 
             // generate the file name for the model based on the table name
-            $classname = $this->options['name'] != '' ? $this->options['name'] : studly_case( str_singular($tablename) );
+            $classname = $this->options['name'] != '' ? $this->options['name'] : studly_case( str_singular( $tablename ) );
             $fullPath = "$path/$classname.php";
             $fullBasePath = "$basepath/Base$classname.php";
 
@@ -145,6 +145,7 @@ class GenerateModelCommand extends ModelFromTableCommand
             $stub = $this->replaceClassName( $stub, $tablename );
             $stub = $this->replaceModuleInformation( $stub, $model );
             $stub = $this->replaceConnection( $stub, $this->options['connection'] );
+            $stub = $this->replaceLabel( $stub, $columns );
 
             $basestub = $this->replaceClassName( $basestub, $tablename );
             $basestub = $this->replaceBaseClassName( $basestub, $this->options['base'] );
@@ -173,27 +174,27 @@ class GenerateModelCommand extends ModelFromTableCommand
     /**
      * replaces the class name in the stub.
      *
-     * @param string $stub      stub content
+     * @param string $stub stub content
      * @param string $tableName the name of the table to make as the class
      *
      * @return string stub content
      */
-    public function replaceClassName($stub, $tableName)
+    public function replaceClassName( $stub, $tableName )
     {
-        return str_replace('{{class}}', studly_case(str_singular($tableName)), $stub);
+        return str_replace( '{{class}}', studly_case( str_singular( $tableName ) ), $stub );
     }
 
     /**
      * replaces the class name in the stub.
      *
-     * @param string $stub      stub content
+     * @param string $stub stub content
      * @param string $tableName the name of the table to make as the class
      *
      * @return string stub content
      */
-    public function replaceBaseClassName($stub, $baseclass)
+    public function replaceBaseClassName( $stub, $baseclass )
     {
-        return str_replace('{{baseclass}}', studly_case($baseclass), $stub);
+        return str_replace( '{{baseclass}}', studly_case( $baseclass ), $stub );
     }
 
     public function replaceRulesAndProperties( $stub, $columns, $tablename )
@@ -220,15 +221,15 @@ class GenerateModelCommand extends ModelFromTableCommand
     public function getRelationsForModel( &$properties, $tablename )
     {
         $s = '';
-        $searchedColumnName = snake_case( str_singular($tablename)."_id" );
+        $searchedColumnName = snake_case( str_singular( $tablename )."_id" );
 
-        foreach( $this->getAllTables() as $table ){
-            if( in_array( $searchedColumnName,$this->getTableColumns($table))){
-                $table = $this->getTableWithoutPrefix($table);
+        foreach( $this->getAllTables() as $table ) {
+            if( in_array( $searchedColumnName, $this->getTableColumns( $table ) ) ) {
+                $table = $this->getTableWithoutPrefix( $table );
 
 //                $name = str_singular($table);
                 $name = $table;
-                $relatedModel = $this->options['namespace']."\\".studly_case(str_singular($table));
+                $relatedModel = $this->options['namespace']."\\".studly_case( str_singular( $table ) );
 
                 $properties .= "\n * @property \\".$relatedModel."[] ".$name;
 
@@ -298,7 +299,7 @@ class GenerateModelCommand extends ModelFromTableCommand
 
         if( $foreignKey != 'id' ) {
             $tablename = $this->getTableNameByForeignKey( $foreignKey );
-            if( $tablename != null ){
+            if( $tablename != null ) {
 
                 $tablename = $this->getTableWithoutPrefix( $tablename );
 
@@ -327,9 +328,9 @@ class GenerateModelCommand extends ModelFromTableCommand
     {
         $tables = $this->getAllTables()->toArray();
         rsort( $tables );
-        $tables = array_map(function($x){
-            return $this->getTableWithoutPrefix($x);
-        }, $tables);
+        $tables = array_map( function ( $x ) {
+            return $this->getTableWithoutPrefix( $x );
+        }, $tables );
 
         $matches = preg_grep( "/".substr( $foreignKey, 0, strlen( $foreignKey ) - 3 )."/", $tables );
 
@@ -405,11 +406,12 @@ class GenerateModelCommand extends ModelFromTableCommand
 
         // single or list of tables
         $this->options['table'] = ( $this->option( 'table' ) ) ? $this->option( 'table' ) : '';
-        
+
         $this->options['prefix'] = ( $this->option( 'prefix' ) ) ? $this->option( 'prefix' ) : '';
     }
 
-    protected function getTableWithoutPrefix($table){
+    protected function getTableWithoutPrefix( $table )
+    {
         return preg_replace( "/^".$this->options['prefix']."/", '', $table );
     }
 
@@ -441,5 +443,27 @@ class GenerateModelCommand extends ModelFromTableCommand
     public function getBaseStub()
     {
         return __DIR__.'/stubs/basemodel.stub';
+    }
+
+    public function replaceLabel( $stub, $columns )
+    {
+        $columns = array_map( function ( $c ) {
+            return $c->Field;
+        }, $columns );
+
+        $priorities = [ 'title', 'name', 'key', 'id' ];
+
+        $first = null;
+        foreach( $priorities as $p )
+            if( in_array( $p, $columns ) ) {
+                if( $first !== null )
+                    return str_replace( '{{label}}', "\$this->$first ?: \$this->$p", $stub );
+                else
+                    $first = $p;
+            }
+
+        if( $first !== null )
+            return str_replace( '{{label}}', "\$this->$first", $stub );
+        return str_replace( '{{label}}', '', $stub );
     }
 }
