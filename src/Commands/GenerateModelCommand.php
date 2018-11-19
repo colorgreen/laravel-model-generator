@@ -323,7 +323,7 @@ class GenerateModelCommand extends ModelFromTableCommand
         return '';
     }
 
-    private function getTableNameByForeignKey( $foreignKey )
+    protected function getTableNameByForeignKey( $foreignKey )
     {
         $tables = $this->getAllTables()->toArray();
         rsort( $tables );
@@ -346,25 +346,25 @@ class GenerateModelCommand extends ModelFromTableCommand
         return Schema::getColumnListing( $table );
     }
 
-    private function getLenght( $text )
+    protected function getLenght( $text )
     {
         preg_match( "/\d+/", $text, $output_array );
         return count( $output_array ) == 0 ? null : $output_array[0];
     }
 
-    private function isInteger( $text )
+    protected function isInteger( $text )
     {
         preg_match( "/tinyint|smallint|mediumint|bigint|int/", $text, $output_array );
         return count( $output_array ) == 0 ? null : $output_array[0];
     }
 
-    private function isNumeric( $text )
+    protected function isNumeric( $text )
     {
         preg_match( "/tinyint|smallint|mediumint|bigint|int|decimal|float|double|real|bit|serial/", $text, $output_array );
         return count( $output_array ) == 0 ? null : $output_array[0];
     }
 
-    private function isDateTime( $text )
+    protected function isDateTime( $text )
     {
         preg_match( "/datetime|timestamp|date|time|year/", $text, $output_array );
         return count( $output_array ) == 0 ? null : $output_array[0];
