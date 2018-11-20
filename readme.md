@@ -40,6 +40,12 @@ use Colorgreen\Generator\Models\BaseModel;
  */
 class BasePage extends BaseModel
 {
+    protected $attributes = [
+		'email' => 'default_email', 
+		'active' => 1, 
+		'count' => 0
+	];
+
     protected static $rules = [
 		'id' => 'required|numeric|integer', 
 		'image' => 'nullable|string|max:255', 

@@ -208,7 +208,7 @@ class GenerateModelCommand extends ModelFromTableCommand
             $field = $column['field'];
 
             $type = $this->getPhpType( $column['type'] );
-            if( $column['default'] )
+            if( $column['default'] !== null )
                 $this->defaults .= ( strlen( $this->defaults ) > 0 ? ', ' : '' )."\n\t\t'$field' => ".($type == 'string' ? '\'' : '').$column['default'].($type == 'string' ? '\'' : '');
 
             $this->rules .= ( strlen( $this->rules ) > 0 ? ', ' : '' )."\n\t\t'$field' => '".$this->getRules( $column )."'";

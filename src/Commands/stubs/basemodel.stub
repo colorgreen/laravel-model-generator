@@ -15,7 +15,7 @@ class Base{{class}} extends {{baseclass}}
 {
     {{connection}}
 
-    protected static $attributes = [{{defaults}}];
+    protected $attributes = [{{defaults}}];
 
     protected static $rules = [{{rules}}];
 
