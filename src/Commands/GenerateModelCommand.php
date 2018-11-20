@@ -25,6 +25,7 @@ class GenerateModelCommand extends ModelFromTableCommand
                             {--namespace= : by default the namespace that will be applied to all models is App}
                             {--all : run for all tables}';
 
+    public $defaults;
     public $rules;
     public $properties;
     public $modelRelations;
@@ -136,6 +137,7 @@ class GenerateModelCommand extends ModelFromTableCommand
                     'field' => $col->Field,
                     'type' => $col->Type,
                     'null' => $col->Null == 'YES',
+                    'default' => $col->Default,
                 ] );
             }
 
@@ -200,18 +202,25 @@ class GenerateModelCommand extends ModelFromTableCommand
     public function replaceRulesAndProperties( $stub, $columns, $tablename )
     {
         $this->rules = '';
+        $this->defaults = '';
         $this->properties = '';
         foreach( $columns as $column ) {
             $field = $column['field'];
 
+            $type = $this->getPhpType( $column['type'] );
+            if( $column['default'] )
+                $this->defaults .= ( strlen( $this->defaults ) > 0 ? ', ' : '' )."\n\t\t'$field' => ".($type == 'string' ? '\'' : '').$column['default'].($type == 'string' ? '\'' : '');
+
             $this->rules .= ( strlen( $this->rules ) > 0 ? ', ' : '' )."\n\t\t'$field' => '".$this->getRules( $column )."'";
-            $this->properties .= "\n * @property ".$this->getPhpType( $column['type'] )." ".$field;
+            $this->properties .= "\n * @property ".$type." ".$field;
             $this->modelRelations .= $this->getRelationTemplate( $column, $this->properties );
         }
+        $this->defaults .= "\n\t";
         $this->rules .= "\n\t";
 
         $this->modelRelations .= $this->getRelationsForModel( $this->properties, $tablename );
 
+        $stub = str_replace( '{{defaults}}', $this->defaults, $stub );
         $stub = str_replace( '{{rules}}', $this->rules, $stub );
         $stub = str_replace( '{{properties}}', $this->properties, $stub );
         $stub = str_replace( '{{relations}}', $this->modelRelations, $stub );
