@@ -15,14 +15,17 @@ class BaseModel extends Model
 
     protected static $messages = [];
 
-
-    public function validate($data = null)
+    public function getValidator( $data = null )
     {
-        $v = Validator::make($data ?: $this->attributes, static::$rules, static::$messages);
+        return Validator::make( $data ?: $this->attributes, static::$rules, static::$messages );
+    }
 
-        if ($v->fails())
-        {
-            $this->setErrors($v->messages());
+    public function validate( $data = null )
+    {
+        $v = $this->getValidator( $data );
+
+        if( $v->fails() ) {
+            $this->setErrors( $v->messages() );
             return false;
         }
 
@@ -38,7 +41,7 @@ class BaseModel extends Model
     }
 
 
-    protected function setErrors($errors)
+    protected function setErrors( $errors )
     {
         $this->errors = $errors;
     }
@@ -50,6 +53,11 @@ class BaseModel extends Model
 
     public function hasErrors()
     {
-        return ! empty($this->errors);
+        return !empty( $this->errors );
+    }
+
+    public function getRules()
+    {
+        return static::$rules;
     }
 }
