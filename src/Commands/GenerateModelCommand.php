@@ -174,6 +174,69 @@ class GenerateModelCommand extends ModelFromTableCommand
     }
 
     /**
+     * replaces the module information.
+     *
+     * @param string $stub             stub content
+     * @param array  $modelInformation array (key => value)
+     *
+     * @return string stub content
+     */
+    public function replaceModuleInformation($stub, $modelInformation)
+    {
+        // replace table
+        $stub = str_replace('{{table}}', $modelInformation['table'], $stub);
+
+        // replace fillable
+        $this->fieldsHidden = '';
+        $this->fieldsFillable = '';
+        $this->fieldsCast = '';
+        foreach ($modelInformation['fillable'] as $field) {
+            // fillable and hidden
+            if ($field != 'id') {
+                $this->fieldsFillable .= (strlen($this->fieldsFillable) > 0 ? ', ' : '')."'$field'";
+
+                $fieldsFiltered = $this->columns->where('field', $field);
+                if ($fieldsFiltered) {
+                    // check type
+                    $type = strtolower($fieldsFiltered->first()['type']);
+                    switch ($type) {
+                        case 'timestamp':
+                            $this->fieldsDate .= (strlen($this->fieldsDate) > 0 ? ', ' : '')."'$field'";
+                            break;
+                        case 'datetime':
+                            $this->fieldsDate .= (strlen($this->fieldsDate) > 0 ? ', ' : '')."'$field'";
+                            break;
+                        case 'date':
+                            $this->fieldsDate .= (strlen($this->fieldsDate) > 0 ? ', ' : '')."'$field'";
+                            break;
+//                        case 'tinyint(1)':
+//                            $this->fieldsCast .= (strlen($this->fieldsCast) > 0 ? ', ' : '')."'$field' => 'boolean'";
+//                            break;
+                    }
+
+                    $cast = $this->getPhpType($type);
+                    if( $cast !== 'string' )
+                        $this->fieldsCast .= (strlen($this->fieldsCast) > 0 ? ', ' : '')."'$field' => '".$cast."'";
+
+                }
+            } else {
+                if ($field != 'id' && $field != 'created_at' && $field != 'updated_at') {
+                    $this->fieldsHidden .= (strlen($this->fieldsHidden) > 0 ? ', ' : '')."'$field'";
+                }
+            }
+        }
+
+        // replace in stub
+        $stub = str_replace('{{fillable}}', $this->fieldsFillable, $stub);
+        $stub = str_replace('{{hidden}}', $this->fieldsHidden, $stub);
+        $stub = str_replace('{{casts}}', $this->fieldsCast, $stub);
+        $stub = str_replace('{{dates}}', $this->fieldsDate, $stub);
+        $stub = str_replace('{{modelnamespace}}', $this->options['namespace'], $stub);
+
+        return $stub;
+    }
+
+    /**
      * replaces the class name in the stub.
      *
      * @param string $stub stub content
@@ -262,7 +325,7 @@ class GenerateModelCommand extends ModelFromTableCommand
             if( $length == '1' )
                 return 'boolean';
             else if( $type != null )
-                return 'int';
+                return 'integer';
             return 'float';
         }
         return 'string';
