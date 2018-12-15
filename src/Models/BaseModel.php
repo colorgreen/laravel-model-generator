@@ -102,7 +102,7 @@ class BaseModel extends Model
      */
     public static function getFields()
     {
-        return self::$fields;
+        return static::$fields;
     }
 
 }
