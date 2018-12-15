@@ -33,7 +33,7 @@ class Base{{class}} extends {{baseclass}}
      *
      * @var array
      */
-    protected $fields = [{{fields}}];
+    protected static $fields = [{{fields}}];
 
     /**
      * Attributes that should be mass-assignable.
