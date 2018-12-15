@@ -187,10 +187,13 @@ class GenerateModelCommand extends ModelFromTableCommand
         $stub = str_replace('{{table}}', $modelInformation['table'], $stub);
 
         // replace fillable
+        $this->fields = '';
         $this->fieldsHidden = '';
         $this->fieldsFillable = '';
         $this->fieldsCast = '';
         foreach ($modelInformation['fillable'] as $field) {
+            $this->fields .= (strlen($this->fields) > 0 ? ', ' : '')."'$field'";
+
             // fillable and hidden
             if ($field != 'id') {
                 $this->fieldsFillable .= (strlen($this->fieldsFillable) > 0 ? ', ' : '')."'$field'";
@@ -227,6 +230,7 @@ class GenerateModelCommand extends ModelFromTableCommand
         }
 
         // replace in stub
+        $stub = str_replace('{{fields}}', $this->fields, $stub);
         $stub = str_replace('{{fillable}}', $this->fieldsFillable, $stub);
         $stub = str_replace('{{hidden}}', $this->fieldsHidden, $stub);
         $stub = str_replace('{{casts}}', $this->fieldsCast, $stub);

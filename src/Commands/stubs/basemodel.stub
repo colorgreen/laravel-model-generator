@@ -29,6 +29,13 @@ class Base{{class}} extends {{baseclass}}
     protected $table = '{{table}}';
 
     /**
+     * All model fields.
+     *
+     * @var array
+     */
+    protected $fields = [{{fields}}];
+
+    /**
      * Attributes that should be mass-assignable.
      *
      * @var array
