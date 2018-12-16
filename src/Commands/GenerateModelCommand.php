@@ -176,66 +176,66 @@ class GenerateModelCommand extends ModelFromTableCommand
     /**
      * replaces the module information.
      *
-     * @param string $stub             stub content
-     * @param array  $modelInformation array (key => value)
+     * @param string $stub stub content
+     * @param array $modelInformation array (key => value)
      *
      * @return string stub content
      */
-    public function replaceModuleInformation($stub, $modelInformation)
+    public function replaceModuleInformation( $stub, $modelInformation )
     {
         // replace table
-        $stub = str_replace('{{table}}', $modelInformation['table'], $stub);
+        $stub = str_replace( '{{table}}', $modelInformation['table'], $stub );
 
         // replace fillable
         $this->fields = '';
         $this->fieldsHidden = '';
         $this->fieldsFillable = '';
         $this->fieldsCast = '';
-        foreach ($modelInformation['fillable'] as $field) {
-            $this->fields .= (strlen($this->fields) > 0 ? ', ' : '')."'$field'";
+        foreach( $modelInformation['fillable'] as $field ) {
+            $this->fields .= ( strlen( $this->fields ) > 0 ? ', ' : '' )."'$field'";
 
             // fillable and hidden
-            if ($field != 'id') {
-                $this->fieldsFillable .= (strlen($this->fieldsFillable) > 0 ? ', ' : '')."'$field'";
+            if( $field != 'id' ) {
+                $this->fieldsFillable .= ( strlen( $this->fieldsFillable ) > 0 ? ', ' : '' )."'$field'";
 
-                $fieldsFiltered = $this->columns->where('field', $field);
-                if ($fieldsFiltered) {
+                $fieldsFiltered = $this->columns->where( 'field', $field );
+                if( $fieldsFiltered ) {
                     // check type
-                    $type = strtolower($fieldsFiltered->first()['type']);
-                    switch ($type) {
+                    $type = strtolower( $fieldsFiltered->first()['type'] );
+                    switch( $type ) {
                         case 'timestamp':
-                            $this->fieldsDate .= (strlen($this->fieldsDate) > 0 ? ', ' : '')."'$field'";
+                            $this->fieldsDate .= ( strlen( $this->fieldsDate ) > 0 ? ', ' : '' )."'$field'";
                             break;
                         case 'datetime':
-                            $this->fieldsDate .= (strlen($this->fieldsDate) > 0 ? ', ' : '')."'$field'";
+                            $this->fieldsDate .= ( strlen( $this->fieldsDate ) > 0 ? ', ' : '' )."'$field'";
                             break;
                         case 'date':
-                            $this->fieldsDate .= (strlen($this->fieldsDate) > 0 ? ', ' : '')."'$field'";
+                            $this->fieldsDate .= ( strlen( $this->fieldsDate ) > 0 ? ', ' : '' )."'$field'";
                             break;
 //                        case 'tinyint(1)':
 //                            $this->fieldsCast .= (strlen($this->fieldsCast) > 0 ? ', ' : '')."'$field' => 'boolean'";
 //                            break;
                     }
 
-                    $cast = $this->getPhpType($type);
+                    $cast = $this->getPhpType( $type );
                     if( $cast !== 'string' )
-                        $this->fieldsCast .= (strlen($this->fieldsCast) > 0 ? ', ' : '')."'$field' => '".$cast."'";
+                        $this->fieldsCast .= ( strlen( $this->fieldsCast ) > 0 ? ', ' : '' )."'$field' => '".$cast."'";
 
                 }
             } else {
-                if ($field != 'id' && $field != 'created_at' && $field != 'updated_at') {
-                    $this->fieldsHidden .= (strlen($this->fieldsHidden) > 0 ? ', ' : '')."'$field'";
+                if( $field != 'id' && $field != 'created_at' && $field != 'updated_at' ) {
+                    $this->fieldsHidden .= ( strlen( $this->fieldsHidden ) > 0 ? ', ' : '' )."'$field'";
                 }
             }
         }
 
         // replace in stub
-        $stub = str_replace('{{fields}}', $this->fields, $stub);
-        $stub = str_replace('{{fillable}}', $this->fieldsFillable, $stub);
-        $stub = str_replace('{{hidden}}', $this->fieldsHidden, $stub);
-        $stub = str_replace('{{casts}}', $this->fieldsCast, $stub);
-        $stub = str_replace('{{dates}}', $this->fieldsDate, $stub);
-        $stub = str_replace('{{modelnamespace}}', $this->options['namespace'], $stub);
+        $stub = str_replace( '{{fields}}', $this->fields, $stub );
+        $stub = str_replace( '{{fillable}}', $this->fieldsFillable, $stub );
+        $stub = str_replace( '{{hidden}}', $this->fieldsHidden, $stub );
+        $stub = str_replace( '{{casts}}', $this->fieldsCast, $stub );
+        $stub = str_replace( '{{dates}}', $this->fieldsDate, $stub );
+        $stub = str_replace( '{{modelnamespace}}', $this->options['namespace'], $stub );
 
         return $stub;
     }
@@ -276,7 +276,7 @@ class GenerateModelCommand extends ModelFromTableCommand
 
             $type = $this->getPhpType( $column['type'] );
             if( $column['default'] !== null )
-                $this->defaults .= ( strlen( $this->defaults ) > 0 ? ', ' : '' )."\n\t\t'$field' => ".($type == 'string' ? '\'' : '').$column['default'].($type == 'string' ? '\'' : '');
+                $this->defaults .= ( strlen( $this->defaults ) > 0 ? ', ' : '' )."\n\t\t'$field' => ".( $type == 'string' ? '\'' : '' ).$column['default'].( $type == 'string' ? '\'' : '' );
 
             $this->rules .= ( strlen( $this->rules ) > 0 ? ', ' : '' )."\n\t\t'$field' => '".$this->getRules( $column )."'";
             $this->properties .= "\n * @property ".$type." ".$field;
@@ -525,6 +525,12 @@ class GenerateModelCommand extends ModelFromTableCommand
         $columns = array_map( function ( $c ) {
             return $c->Field;
         }, $columns );
+
+        // replaces for name column
+        foreach( [ 'title', 'name', 'key' ] as $p )
+            if( in_array( $p, $columns ) )
+                $stub = str_replace( '{{namecolumn}}', "protected static \$nameColumn = '$p';", $stub );
+        $stub = str_replace( '{{namecolumn}}', '', $stub );
 
         $priorities = [ 'title', 'name', 'key', 'id' ];
 

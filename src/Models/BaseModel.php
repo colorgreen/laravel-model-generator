@@ -18,6 +18,13 @@ class BaseModel extends Model
     protected static $messages = [];
 
     /**
+     * Name column that will identifies items in data grid
+     *
+     * @var string
+     */
+    protected static $nameColumn = 'id';
+
+    /**
      * Returns validator which validates model with $rules.
      * @param null $data
      * @return \Illuminate\Contracts\Validation\Validator
@@ -105,4 +112,11 @@ class BaseModel extends Model
         return static::$fields;
     }
 
+    /**
+     * @return string
+     */
+    public static function getNameColumn()
+    {
+        return static::$nameColumn;
+    }
 }
