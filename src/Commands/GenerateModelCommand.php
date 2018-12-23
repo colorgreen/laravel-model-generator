@@ -387,7 +387,7 @@ class GenerateModelCommand extends ModelFromTableCommand
                     $properties .= "\n * @property \\".$relatedModel." ".$name;
 
                     $s = "\tpublic function $name() {\n".
-                        "\t\treturn \$this->belongsTo('$relatedModel', '$foreignKey' );\n".
+                        "\t\treturn \$this->belongsTo( \\$relatedModel::class, '$foreignKey' );\n".
                         "\t}\n";
 
                     return $s;
@@ -407,10 +407,14 @@ class GenerateModelCommand extends ModelFromTableCommand
             return $this->getTableWithoutPrefix( $x );
         }, $tables );
 
-        $matches = preg_grep( "/".substr( $foreignKey, 0, strlen( $foreignKey ) - 3 )."/", $tables );
+        $foreignKey = str_plural( str_replace('_id', '', $foreignKey));
+        $matches = preg_grep( "/".$foreignKey."/", $tables );
 
         if( $matches == null )
             return null;
+
+        if( in_array($foreignKey, $matches) )
+            return $foreignKey;
 
         if( array_values( $matches )[0] !== null )
             return array_values( $matches )[0];
