@@ -91,7 +91,9 @@ class GenerateModelCommand extends ModelFromTableCommand
 
         // figure out if it is all tables
         if( $this->options['all'] ) {
-            $tables = $this->getAllTables();
+            $tables = $this->getAllTables()->filter(  function( $v ){
+                return strpos( $v, $this->options['prefix'] ) !== false;
+            } );
         } else {
             $tables = explode( ',', $this->options['table'] );
         }
