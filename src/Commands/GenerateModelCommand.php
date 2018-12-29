@@ -91,7 +91,7 @@ class GenerateModelCommand extends ModelFromTableCommand
 
         // figure out if it is all tables
         if( $this->options['all'] ) {
-            $tables = $this->getAllTables()->filter(  function( $v ){
+            $tables = $this->getAllTables()->filter( function ( $v ) {
                 return strpos( $v, $this->options['prefix'] ) !== false;
             } );
         } else {
@@ -394,6 +394,14 @@ class GenerateModelCommand extends ModelFromTableCommand
 
                     return $s;
                 }
+            } else if( $foreignKey == 'parent_id' ) {
+                $relatedModel = $this->options['namespace']."\\".str_singular( studly_case( $currentTablename) );
+
+                $properties .= "\n * @property \\$relatedModel parent";
+
+                return "\tpublic function parent() {\n".
+                    "\t\treturn \$this->belongsTo( static::class, 'parent_id' );\n".
+                    "\t}\n";
             }
         }
 
@@ -409,13 +417,13 @@ class GenerateModelCommand extends ModelFromTableCommand
             return $this->getTableWithoutPrefix( $x );
         }, $tables );
 
-        $foreignKey = str_plural( str_replace('_id', '', $foreignKey));
+        $foreignKey = str_plural( str_replace( '_id', '', $foreignKey ) );
         $matches = preg_grep( "/".$foreignKey."/", $tables );
 
         if( $matches == null )
             return null;
 
-        if( in_array($foreignKey, $matches) )
+        if( in_array( $foreignKey, $matches ) )
             return $foreignKey;
 
         if( array_values( $matches )[0] !== null )

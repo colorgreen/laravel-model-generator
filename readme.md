@@ -6,6 +6,8 @@ Create BaseModel and Model. If there are changes on table schema, regenerating (
 
 Also base relations are generated to the models (relation ```hasOne()``` and ```belongsTo()``` ).
 
+Column ```parent_id``` will generate relation to itself, available by ```parent()```
+
 Base<xxx> extends Colorgreen\Generator\Models\BaseModel which provide on model validation.
 ```php
 $model = new Model();
@@ -48,6 +50,7 @@ use Colorgreen\Generator\Models\BaseModel;
  * @property string image
  * @property boolean active
  * @property int count
+ * @property string email
  * @property string email
  
  * @property int related_model_id
