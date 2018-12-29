@@ -282,7 +282,7 @@ class GenerateModelCommand extends ModelFromTableCommand
 
             $this->rules .= ( strlen( $this->rules ) > 0 ? ', ' : '' )."\n\t\t'$field' => '".$this->getRules( $column )."'";
             $this->properties .= "\n * @property ".$type." ".$field;
-            $this->modelRelations .= $this->getRelationTemplate( $column, $this->properties );
+            $this->modelRelations .= $this->getRelationTemplate( $column, $this->properties, $tablename );
         }
         $this->defaults .= "\n\t";
         $this->rules .= "\n\t";
@@ -367,7 +367,7 @@ class GenerateModelCommand extends ModelFromTableCommand
         return $rules;
     }
 
-    public function getRelationTemplate( $column, &$properties )
+    public function getRelationTemplate( $column, &$properties, $currentTablename )
     {
         $foreignKey = $column['field'];
 
