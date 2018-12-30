@@ -63,4 +63,5 @@ class Base{{class}} extends {{baseclass}}
      */
     protected $dates = [{{dates}}];
 
+    {{usetimestamps}}
 }

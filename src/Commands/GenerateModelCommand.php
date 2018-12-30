@@ -238,6 +238,7 @@ class GenerateModelCommand extends ModelFromTableCommand
         $stub = str_replace( '{{casts}}', $this->fieldsCast, $stub );
         $stub = str_replace( '{{dates}}', $this->fieldsDate, $stub );
         $stub = str_replace( '{{modelnamespace}}', $this->options['namespace'], $stub );
+        $stub = str_replace( '{{usetimestamps}}', empty($this->fieldsDate) ? 'public $timestamps = false;' : '', $stub );
 
         return $stub;
     }
