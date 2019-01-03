@@ -4,6 +4,7 @@ namespace Colorgreen\Generator\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Validator;
+use Colorgreen\Generator\Traits\ExtendableModelTrait;
 
 /**
  * Class BaseModel
@@ -11,6 +12,8 @@ use Illuminate\Support\Facades\Validator;
  */
 class BaseModel extends Model
 {
+    use ExtendableModelTrait;
+
     protected static $fields = [];
 
     protected static $rules = [];
