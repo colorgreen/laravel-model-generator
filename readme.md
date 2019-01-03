@@ -141,7 +141,7 @@ You can use this command to generate a single table, multiple tables or all of y
 * --all
   * If this flag is present, then the table command will be ignored.
   * This will generate a model for **all** tables found in your database.
-  * _please note that this command will only ignore the `migrations` table and no model will be generate for it_
+  * If --prefix is set relations will be made only within prefixed tables
 * --connection=
   * by default if this option is omitted then the generate will use the default connection found in `config/database.php`
   * To specify a connection ensure that it exists in your `config/database.php` first.
