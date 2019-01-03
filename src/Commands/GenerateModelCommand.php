@@ -91,9 +91,7 @@ class GenerateModelCommand extends ModelFromTableCommand
 
         // figure out if it is all tables
         if( $this->options['all'] ) {
-            $tables = $this->getAllTables()->filter( function ( $v ) {
-                return strpos( $v, $this->options['prefix'] ) !== false;
-            } );
+            $tables = $this->getAllTables();
         } else {
             $tables = explode( ',', $this->options['table'] );
         }
@@ -173,6 +171,12 @@ class GenerateModelCommand extends ModelFromTableCommand
         }
 
         $this->info( 'Complete' );
+    }
+
+    public function getAllTables(){
+        return parent::getAllTables()->filter( function ( $v ) {
+            return strpos( $v, $this->options['prefix'] ) !== false;
+        } );
     }
 
     /**
