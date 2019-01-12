@@ -173,7 +173,8 @@ class GenerateModelCommand extends ModelFromTableCommand
         $this->info( 'Complete' );
     }
 
-    public function getAllTables(){
+    public function getAllTables()
+    {
         return parent::getAllTables()->filter( function ( $v ) {
             return strpos( $v, $this->options['prefix'] ) !== false;
         } );
@@ -202,7 +203,9 @@ class GenerateModelCommand extends ModelFromTableCommand
 
             // fillable and hidden
             if( $field != 'id' ) {
-                $this->fieldsFillable .= ( strlen( $this->fieldsFillable ) > 0 ? ', ' : '' )."'$field'";
+
+                if( !in_array( $field, [ 'created_at', 'updated_at' ] ) )
+                    $this->fieldsFillable .= ( strlen( $this->fieldsFillable ) > 0 ? ', ' : '' )."'$field'";
 
                 $fieldsFiltered = $this->columns->where( 'field', $field );
                 if( $fieldsFiltered ) {
@@ -242,7 +245,7 @@ class GenerateModelCommand extends ModelFromTableCommand
         $stub = str_replace( '{{casts}}', $this->fieldsCast, $stub );
         $stub = str_replace( '{{dates}}', $this->fieldsDate, $stub );
         $stub = str_replace( '{{modelnamespace}}', $this->options['namespace'], $stub );
-        $stub = str_replace( '{{usetimestamps}}', empty($this->fieldsDate) ? 'public $timestamps = false;' : '', $stub );
+        $stub = str_replace( '{{usetimestamps}}', empty( $this->fieldsDate ) ? 'public $timestamps = false;' : '', $stub );
 
         return $stub;
     }
@@ -400,7 +403,7 @@ class GenerateModelCommand extends ModelFromTableCommand
                     return $s;
                 }
             } else if( $foreignKey == 'parent_id' ) {
-                $relatedModel = $this->options['namespace']."\\".str_singular( studly_case( $currentTablename) );
+                $relatedModel = $this->options['namespace']."\\".str_singular( studly_case( $currentTablename ) );
 
                 $properties .= "\n * @property \\$relatedModel parent";
 
