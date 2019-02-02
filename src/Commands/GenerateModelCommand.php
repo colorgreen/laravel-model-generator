@@ -341,6 +341,9 @@ class GenerateModelCommand extends ModelFromTableCommand
             else if( $type != null )
                 return 'integer';
             return 'float';
+        } else {
+            if( $columnType == 'longtext' )
+                return 'array';
         }
         return 'string';
     }
