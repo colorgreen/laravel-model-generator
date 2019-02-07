@@ -20,6 +20,8 @@ class BaseModel extends Model
 
     protected static $messages = [];
 
+    protected $validation = true;
+
     /**
      * Name column that will identifies items in data grid
      *
@@ -62,7 +64,7 @@ class BaseModel extends Model
      */
     public function save( array $options = [] )
     {
-        if( !$this->validate() )
+        if( $this->validation && !$this->validate() )
             return false;
         return parent::save( $options );
     }
@@ -122,4 +124,13 @@ class BaseModel extends Model
     {
         return static::$nameColumn;
     }
+
+    /**
+     * @param bool $validation
+     */
+    public function setValidation( bool $validation ): void
+    {
+        $this->validation = $validation;
+    }
+
 }
