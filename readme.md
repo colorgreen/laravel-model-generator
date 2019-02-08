@@ -2,7 +2,7 @@
 
 Simple generator base on laracademy/generators, extending model generation. Generates model like in Yii framework. Create or update model base on existing table. 
 
-Create BaseModel and Model. If there are changes on table schema, regenerating (the same command) process will change only BaseModel (new rules, fields, etc), so write your logic in Model class to prevent it from overriding.
+Create BaseModel and Model. If there are changes on table schema, regenerating models (by the same command as first generation) process will affect only BaseModel (new rules, fields, etc), so write your logic in Model class to prevent it from overriding.
 
 Also base relations are generated to the models (relation ```hasOne()``` and ```belongsTo()``` ).
 
@@ -51,7 +51,6 @@ use Colorgreen\Generator\Models\BaseModel;
  * @property boolean active
  * @property int count
  * @property string email
- * @property string email
  
  * @property int related_model_id
  * @property \App\Models\RelatedModel related_model
@@ -72,7 +71,11 @@ class BasePage extends BaseModel
 		'email' => 'required|string|max:100|email'
 	];
 	
-	
+	// samlple hasMany relation: check if relation shouldn't be OneToOne ( hasOne() )
+	public function pages() {
+    		return $this->hasMany('SmallElectron\Cms\Models\Page', 'redirect_type_id' );
+    	}
+    	
 	public function related_model() {
 		return $this->belongsTo( App\Models\RelatedModel::class, 'related_model_id' );
 	}
@@ -86,6 +89,10 @@ class BasePage extends BaseModel
     protected $casts = [ 'active' => 'boolean', 'count' => 'integer', 'related_model_id' => 'integer' ];
 
     protected $dates = ['created_at', 'updated_at'];
+    
+    // set in to 'false' if model shouldn't be validated during save.
+    // you can turn off validation on specific model using $model->setValidation(false)
+    protected $validation = true;
 }
 ```
 

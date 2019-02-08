@@ -319,8 +319,7 @@ class GenerateModelCommand extends ModelFromTableCommand
 
                 $properties .= "\n * @property \\".$relatedModel."[] ".$name;
 
-                $s .= "\t//TODO check if relation shouldn't be OneToOne ( hasOne() )\n".
-                    "\tpublic function $name() {\n".
+                $s .= "\n\tpublic function $name() {\n".
                     "\t\treturn \$this->hasMany('$relatedModel', '$searchedColumnName' );\n".
                     "\t}\n";
             }
