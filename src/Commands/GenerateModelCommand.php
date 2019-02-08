@@ -366,6 +366,8 @@ class GenerateModelCommand extends ModelFromTableCommand
                 $rules .= '|numeric';;
         } else if( $this->isDateTime( $info['type'] ) != null ) {
             $rules .= "|date";
+        } else if( $info['type'] == 'longtext' ) {
+            $rules .= "|array";
         } else {
             $type = preg_match( "/\w+/", $info['type'], $output_array )[0];
             $rules .= "|string".( $length ? '|max:'.$length : '' );
