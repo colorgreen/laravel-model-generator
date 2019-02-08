@@ -36,7 +36,7 @@ class BaseModel extends Model
      */
     public function getValidator( $data = null )
     {
-        return Validator::make( $data ?: $this->attributes, static::$rules, static::$messages );
+        return Validator::make( $data ?: $this->toArray(), static::$rules, static::$messages );
     }
 
     /**
