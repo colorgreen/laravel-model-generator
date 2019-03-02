@@ -30,6 +30,8 @@ class GenerateModelCommand extends ModelFromTableCommand
     public $properties;
     public $modelRelations;
 
+    protected $currentTable;
+
     /**
      * Create a new command instance.
      *
@@ -98,6 +100,8 @@ class GenerateModelCommand extends ModelFromTableCommand
 
         // cycle through each table
         foreach( $tables as $table ) {
+            $this->currentTable = $table;
+
             $this->rules = null;
             $this->properties = null;
             $this->modelRelations = null;
@@ -129,17 +133,7 @@ class GenerateModelCommand extends ModelFromTableCommand
             // fix these up
             $columns = $this->describeTable( $table );
 
-            // use a collection
-            $this->columns = collect();
-
-            foreach( $columns as $col ) {
-                $this->columns->push( [
-                    'field' => $col->Field,
-                    'type' => $col->Type,
-                    'null' => $col->Null == 'YES',
-                    'default' => $col->Default,
-                ] );
-            }
+            $this->columns = collect($columns);
 
             // reset fields
             $this->resetFields();
@@ -207,10 +201,10 @@ class GenerateModelCommand extends ModelFromTableCommand
                 if( !in_array( $field, [ 'created_at', 'updated_at' ] ) )
                     $this->fieldsFillable .= ( strlen( $this->fieldsFillable ) > 0 ? ', ' : '' )."'$field'";
 
-                $fieldsFiltered = $this->columns->where( 'field', $field );
+                $fieldsFiltered = $this->columns->where( 'Field', $field );
                 if( $fieldsFiltered ) {
                     // check type
-                    $type = strtolower( $fieldsFiltered->first()['type'] );
+                    $type = strtolower( $fieldsFiltered->first()->Type );
                     switch( $type ) {
                         case 'timestamp':
                             $this->fieldsDate .= ( strlen( $this->fieldsDate ) > 0 ? ', ' : '' )."'$field'";
@@ -282,11 +276,11 @@ class GenerateModelCommand extends ModelFromTableCommand
         $this->defaults = '';
         $this->properties = '';
         foreach( $columns as $column ) {
-            $field = $column['field'];
+            $field = $column->Field;
 
-            $type = $this->getPhpType( $column['type'] );
-            if( $column['default'] !== null )
-                $this->defaults .= ( strlen( $this->defaults ) > 0 ? ', ' : '' )."\n\t\t'$field' => ".( $type == 'string' ? '\'' : '' ).$column['default'].( $type == 'string' ? '\'' : '' );
+            $type = $this->getPhpType( $column->Type );
+            if( $column->Default !== null )
+                $this->defaults .= ( strlen( $this->defaults ) > 0 ? ', ' : '' )."\n\t\t'$field' => ".( $type == 'string' ? '\'' : '' ).$column->Default.( $type == 'string' ? '\'' : '' );
 
             $this->rules .= ( strlen( $this->rules ) > 0 ? ', ' : '' )."\n\t\t'$field' => '".$this->getRules( $column )."'";
             $this->properties .= "\n * @property ".$type." ".$field;
@@ -349,14 +343,14 @@ class GenerateModelCommand extends ModelFromTableCommand
 
     public function getRules( $info )
     {
-        if( $info['field'] == 'id' )
+        if( $info->Field == 'id' )
             $rules = 'nullable';
-        else $rules = $info["null"] ? 'nullable' : 'required';
+        else $rules = $info->Null == 'YES' ? 'nullable' : 'required';
 
-        $length = $this->getLenght( $info['type'] );
+        $length = $this->getLenght( $info->Type );
 
-        if( $this->isNumeric( $info['type'] ) != null ) {
-            $type = $this->isInteger( $info['type'] );
+        if( $this->isNumeric( $info->Type ) != null ) {
+            $type = $this->isInteger( $info->Type );
 
             if( $length == '1' )
                 $rules .= '|boolean';
@@ -364,17 +358,20 @@ class GenerateModelCommand extends ModelFromTableCommand
                 $rules .= '|numeric|integer';
             else
                 $rules .= '|numeric';;
-        } else if( $this->isDateTime( $info['type'] ) != null ) {
+        } else if( $this->isDateTime( $info->Type ) != null ) {
             $rules .= "|date";
-        } else if( $info['type'] == 'longtext' ) {
+        } else if( $info->Type == 'longtext' ) {
             $rules .= "|array";
         } else {
-            $type = preg_match( "/\w+/", $info['type'], $output_array )[0];
+            $type = preg_match( "/\w+/", $info->Type, $output_array )[0];
             $rules .= "|string".( $length ? '|max:'.$length : '' );
 
-            if( preg_match( "/email/", $info['field'] ) )
+            if( preg_match( "/email/", $info->Field ) )
                 $rules .= "|email";
         }
+        
+        if( $info->Key == "UNI" )
+            $rules .= '|unique:'.$this->currentTable;
 
         return $rules;
     }
