@@ -16,8 +16,6 @@ class BaseModel extends Model
 
     protected static $fields = [];
 
-    protected static $rules = [];
-
     protected static $messages = [];
 
     protected $validation = true;
@@ -36,7 +34,7 @@ class BaseModel extends Model
      */
     public function getValidator( $data = null )
     {
-        return Validator::make( $data ?: $this->toArray(), static::$rules, static::$messages );
+        return Validator::make( $data ?: $this->toArray(), $this->getRules(), static::$messages );
     }
 
     /**
@@ -85,6 +83,14 @@ class BaseModel extends Model
     }
 
     /**
+     * @return array
+     */
+    public function getRules()
+    {
+        return [];
+    }
+
+    /**
      * @return bool
      */
     public function hasErrors()
@@ -98,15 +104,6 @@ class BaseModel extends Model
     public function getCasts()
     {
         return $this->casts;
-    }
-
-
-    /**
-     * @return array
-     */
-    public static function getRules()
-    {
-        return static::$rules;
     }
 
     /**

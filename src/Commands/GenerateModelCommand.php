@@ -282,12 +282,12 @@ class GenerateModelCommand extends ModelFromTableCommand
             if( $column->Default !== null )
                 $this->defaults .= ( strlen( $this->defaults ) > 0 ? ', ' : '' )."\n\t\t'$field' => ".( $type == 'string' ? '\'' : '' ).$column->Default.( $type == 'string' ? '\'' : '' );
 
-            $this->rules .= ( strlen( $this->rules ) > 0 ? ', ' : '' )."\n\t\t'$field' => '".$this->getRules( $column )."'";
+            $this->rules .= ( strlen( $this->rules ) > 0 ? ', ' : '' )."\n\t\t\t'$field' => \"".$this->getRules( $column )."\"";
             $this->properties .= "\n * @property ".$type." ".$field;
             $this->modelRelations .= $this->getRelationTemplate( $column, $this->properties, $tablename );
         }
         $this->defaults .= "\n\t";
-        $this->rules .= "\n\t";
+        $this->rules .= "\n\t\t";
 
         $this->modelRelations .= $this->getRelationsForModel( $this->properties, $tablename );
 
@@ -371,7 +371,7 @@ class GenerateModelCommand extends ModelFromTableCommand
         }
         
         if( $info->Key == "UNI" )
-            $rules .= '|unique:'.$this->currentTable;
+            $rules .= '|unique:'.$this->currentTable.','.$info->Field.',{$this->id}';
 
         return $rules;
     }

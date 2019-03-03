@@ -17,7 +17,13 @@ class Base{{class}} extends {{baseclass}}
 
     protected $attributes = [{{defaults}}];
 
-    protected static $rules = [{{rules}}];
+    /**
+     * @return array
+     */
+    public function getRules()
+    {
+        return [{{rules}}];
+    }
 
 {{relations}}
 
