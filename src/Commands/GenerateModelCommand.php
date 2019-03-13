@@ -133,7 +133,7 @@ class GenerateModelCommand extends ModelFromTableCommand
             // fix these up
             $columns = $this->describeTable( $table );
 
-            $this->columns = collect($columns);
+            $this->columns = collect( $columns );
 
             // reset fields
             $this->resetFields();
@@ -169,7 +169,10 @@ class GenerateModelCommand extends ModelFromTableCommand
 
     public function getAllTables()
     {
+        if( empty( $this->options['prefix'] ) )
+            return parent::getAllTables();
         return parent::getAllTables()->filter( function ( $v ) {
+            var_dump( $v );
             return strpos( $v, $this->options['prefix'] ) !== false;
         } );
     }
@@ -279,8 +282,12 @@ class GenerateModelCommand extends ModelFromTableCommand
             $field = $column->Field;
 
             $type = $this->getPhpType( $column->Type );
-            if( $column->Default !== null )
-                $this->defaults .= ( strlen( $this->defaults ) > 0 ? ', ' : '' )."\n\t\t'$field' => ".( $type == 'string' ? '\'' : '' ).$column->Default.( $type == 'string' ? '\'' : '' );
+//            if( $column->Default !== null )
+            $this->defaults .= ( strlen( $this->defaults ) > 0 ? ', ' : '' )
+                ."\n\t\t'$field' => "
+                .( $type == 'string' ? '\'' : '' )
+                .( $column->Default ?: 'null' )
+                .( $type == 'string' ? '\'' : '' );
 
             $this->rules .= ( strlen( $this->rules ) > 0 ? ', ' : '' )."\n\t\t\t'$field' => \"".$this->getRules( $column )."\"";
             $this->properties .= "\n * @property ".$type." ".$field;
@@ -369,7 +376,7 @@ class GenerateModelCommand extends ModelFromTableCommand
             if( preg_match( "/email/", $info->Field ) )
                 $rules .= "|email";
         }
-        
+
         if( $info->Key == "UNI" )
             $rules .= '|unique:'.$this->currentTable.','.$info->Field.',{$this->id}';
 
@@ -378,7 +385,7 @@ class GenerateModelCommand extends ModelFromTableCommand
 
     public function getRelationTemplate( $column, &$properties, $currentTablename )
     {
-        $foreignKey = $column['field'];
+        $foreignKey = $column->Field;
 
         if( strpos( $foreignKey, '_id' ) === false )
             return '';
