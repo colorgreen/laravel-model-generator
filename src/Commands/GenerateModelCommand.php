@@ -30,6 +30,8 @@ class GenerateModelCommand extends ModelFromTableCommand
     public $properties;
     public $modelRelations;
 
+    protected $currentTable;
+
     /**
      * Create a new command instance.
      *
@@ -98,6 +100,8 @@ class GenerateModelCommand extends ModelFromTableCommand
 
         // cycle through each table
         foreach( $tables as $table ) {
+            $this->currentTable = $table;
+
             $this->rules = null;
             $this->properties = null;
             $this->modelRelations = null;
@@ -129,17 +133,7 @@ class GenerateModelCommand extends ModelFromTableCommand
             // fix these up
             $columns = $this->describeTable( $table );
 
-            // use a collection
-            $this->columns = collect();
-
-            foreach( $columns as $col ) {
-                $this->columns->push( [
-                    'field' => $col->Field,
-                    'type' => $col->Type,
-                    'null' => $col->Null == 'YES',
-                    'default' => $col->Default,
-                ] );
-            }
+            $this->columns = collect($columns);
 
             // reset fields
             $this->resetFields();
@@ -173,69 +167,79 @@ class GenerateModelCommand extends ModelFromTableCommand
         $this->info( 'Complete' );
     }
 
+    public function getAllTables()
+    {
+        return parent::getAllTables()->filter( function ( $v ) {
+            return strpos( $v, $this->options['prefix'] ) !== false;
+        } );
+    }
+
     /**
      * replaces the module information.
      *
-     * @param string $stub             stub content
-     * @param array  $modelInformation array (key => value)
+     * @param string $stub stub content
+     * @param array $modelInformation array (key => value)
      *
      * @return string stub content
      */
-    public function replaceModuleInformation($stub, $modelInformation)
+    public function replaceModuleInformation( $stub, $modelInformation )
     {
         // replace table
-        $stub = str_replace('{{table}}', $modelInformation['table'], $stub);
+        $stub = str_replace( '{{table}}', $modelInformation['table'], $stub );
 
         // replace fillable
         $this->fields = '';
         $this->fieldsHidden = '';
         $this->fieldsFillable = '';
         $this->fieldsCast = '';
-        foreach ($modelInformation['fillable'] as $field) {
-            $this->fields .= (strlen($this->fields) > 0 ? ', ' : '')."'$field'";
+        foreach( $modelInformation['fillable'] as $field ) {
+            $this->fields .= ( strlen( $this->fields ) > 0 ? ', ' : '' )."'$field'";
 
             // fillable and hidden
-            if ($field != 'id') {
-                $this->fieldsFillable .= (strlen($this->fieldsFillable) > 0 ? ', ' : '')."'$field'";
+            if( $field != 'id' ) {
 
-                $fieldsFiltered = $this->columns->where('field', $field);
-                if ($fieldsFiltered) {
+                if( !in_array( $field, [ 'created_at', 'updated_at' ] ) )
+                    $this->fieldsFillable .= ( strlen( $this->fieldsFillable ) > 0 ? ', ' : '' )."'$field'";
+
+                $fieldsFiltered = $this->columns->where( 'Field', $field );
+                if( $fieldsFiltered ) {
                     // check type
-                    $type = strtolower($fieldsFiltered->first()['type']);
-                    switch ($type) {
+                    $type = strtolower( $fieldsFiltered->first()->Type );
+                    switch( $type ) {
                         case 'timestamp':
-                            $this->fieldsDate .= (strlen($this->fieldsDate) > 0 ? ', ' : '')."'$field'";
+                            $this->fieldsDate .= ( strlen( $this->fieldsDate ) > 0 ? ', ' : '' )."'$field'";
                             break;
                         case 'datetime':
-                            $this->fieldsDate .= (strlen($this->fieldsDate) > 0 ? ', ' : '')."'$field'";
+                            $this->fieldsDate .= ( strlen( $this->fieldsDate ) > 0 ? ', ' : '' )."'$field'";
                             break;
                         case 'date':
-                            $this->fieldsDate .= (strlen($this->fieldsDate) > 0 ? ', ' : '')."'$field'";
+                            $this->fieldsDate .= ( strlen( $this->fieldsDate ) > 0 ? ', ' : '' )."'$field'";
                             break;
 //                        case 'tinyint(1)':
 //                            $this->fieldsCast .= (strlen($this->fieldsCast) > 0 ? ', ' : '')."'$field' => 'boolean'";
 //                            break;
                     }
 
-                    $cast = $this->getPhpType($type);
+                    $cast = $this->getPhpType( $type );
                     if( $cast !== 'string' )
-                        $this->fieldsCast .= (strlen($this->fieldsCast) > 0 ? ', ' : '')."'$field' => '".$cast."'";
+                        $this->fieldsCast .= ( strlen( $this->fieldsCast ) > 0 ? ', ' : '' )."'$field' => '".$cast."'";
 
                 }
             } else {
-                if ($field != 'id' && $field != 'created_at' && $field != 'updated_at') {
-                    $this->fieldsHidden .= (strlen($this->fieldsHidden) > 0 ? ', ' : '')."'$field'";
+                if( $field != 'id' && $field != 'created_at' && $field != 'updated_at' ) {
+                    $this->fieldsHidden .= ( strlen( $this->fieldsHidden ) > 0 ? ', ' : '' )."'$field'";
                 }
             }
         }
 
         // replace in stub
-        $stub = str_replace('{{fields}}', $this->fields, $stub);
-        $stub = str_replace('{{fillable}}', $this->fieldsFillable, $stub);
-        $stub = str_replace('{{hidden}}', $this->fieldsHidden, $stub);
-        $stub = str_replace('{{casts}}', $this->fieldsCast, $stub);
-        $stub = str_replace('{{dates}}', $this->fieldsDate, $stub);
-        $stub = str_replace('{{modelnamespace}}', $this->options['namespace'], $stub);
+        $stub = str_replace( '{{fields}}', $this->fields, $stub );
+        $stub = str_replace( '{{fillable}}', $this->fieldsFillable, $stub );
+        $stub = str_replace( '{{hidden}}', $this->fieldsHidden, $stub );
+        $stub = str_replace( '{{casts}}', $this->fieldsCast, $stub );
+        $stub = str_replace( '{{dates}}', $this->fieldsDate, $stub );
+        $stub = str_replace( '{{modelnamespace}}', $this->options['namespace'], $stub );
+        $stub = str_replace( '{{usetimestamps}}', empty( $this->fieldsDate ) ? 'public $timestamps = false;' : '', $stub );
 
         return $stub;
     }
@@ -272,18 +276,18 @@ class GenerateModelCommand extends ModelFromTableCommand
         $this->defaults = '';
         $this->properties = '';
         foreach( $columns as $column ) {
-            $field = $column['field'];
+            $field = $column->Field;
 
-            $type = $this->getPhpType( $column['type'] );
-            if( $column['default'] !== null )
-                $this->defaults .= ( strlen( $this->defaults ) > 0 ? ', ' : '' )."\n\t\t'$field' => ".($type == 'string' ? '\'' : '').$column['default'].($type == 'string' ? '\'' : '');
+            $type = $this->getPhpType( $column->Type );
+            if( $column->Default !== null )
+                $this->defaults .= ( strlen( $this->defaults ) > 0 ? ', ' : '' )."\n\t\t'$field' => ".( $type == 'string' ? '\'' : '' ).$column->Default.( $type == 'string' ? '\'' : '' );
 
-            $this->rules .= ( strlen( $this->rules ) > 0 ? ', ' : '' )."\n\t\t'$field' => '".$this->getRules( $column )."'";
+            $this->rules .= ( strlen( $this->rules ) > 0 ? ', ' : '' )."\n\t\t\t'$field' => \"".$this->getRules( $column )."\"";
             $this->properties .= "\n * @property ".$type." ".$field;
-            $this->modelRelations .= $this->getRelationTemplate( $column, $this->properties );
+            $this->modelRelations .= $this->getRelationTemplate( $column, $this->properties, $tablename );
         }
         $this->defaults .= "\n\t";
-        $this->rules .= "\n\t";
+        $this->rules .= "\n\t\t";
 
         $this->modelRelations .= $this->getRelationsForModel( $this->properties, $tablename );
 
@@ -309,8 +313,7 @@ class GenerateModelCommand extends ModelFromTableCommand
 
                 $properties .= "\n * @property \\".$relatedModel."[] ".$name;
 
-                $s .= "\t//TODO check if relation shouldn't be OneToOne ( hasOne() )\n".
-                    "\tpublic function $name() {\n".
+                $s .= "\n\tpublic function $name() {\n".
                     "\t\treturn \$this->hasMany('$relatedModel', '$searchedColumnName' );\n".
                     "\t}\n";
             }
@@ -331,20 +334,23 @@ class GenerateModelCommand extends ModelFromTableCommand
             else if( $type != null )
                 return 'integer';
             return 'float';
+        } else {
+            if( $columnType == 'longtext' )
+                return 'array';
         }
         return 'string';
     }
 
     public function getRules( $info )
     {
-        if( $info['field'] == 'id' )
+        if( $info->Field == 'id' )
             $rules = 'nullable';
-        else $rules = $info["null"] ? 'nullable' : 'required';
+        else $rules = $info->Null == 'YES' ? 'nullable' : 'required';
 
-        $length = $this->getLenght( $info['type'] );
+        $length = $this->getLenght( $info->Type );
 
-        if( $this->isNumeric( $info['type'] ) != null ) {
-            $type = $this->isInteger( $info['type'] );
+        if( $this->isNumeric( $info->Type ) != null ) {
+            $type = $this->isInteger( $info->Type );
 
             if( $length == '1' )
                 $rules .= '|boolean';
@@ -352,20 +358,25 @@ class GenerateModelCommand extends ModelFromTableCommand
                 $rules .= '|numeric|integer';
             else
                 $rules .= '|numeric';;
-        } else if( $this->isDateTime( $info['type'] ) != null ) {
+        } else if( $this->isDateTime( $info->Type ) != null ) {
             $rules .= "|date";
+        } else if( $info->Type == 'longtext' ) {
+            $rules .= "|array";
         } else {
-            $type = preg_match( "/\w+/", $info['type'], $output_array )[0];
+            $type = preg_match( "/\w+/", $info->Type, $output_array )[0];
             $rules .= "|string".( $length ? '|max:'.$length : '' );
 
-            if( preg_match( "/email/", $info['field'] ) )
+            if( preg_match( "/email/", $info->Field ) )
                 $rules .= "|email";
         }
+        
+        if( $info->Key == "UNI" )
+            $rules .= '|unique:'.$this->currentTable.','.$info->Field.',{$this->id}';
 
         return $rules;
     }
 
-    public function getRelationTemplate( $column, &$properties )
+    public function getRelationTemplate( $column, &$properties, $currentTablename )
     {
         $foreignKey = $column['field'];
 
@@ -387,11 +398,19 @@ class GenerateModelCommand extends ModelFromTableCommand
                     $properties .= "\n * @property \\".$relatedModel." ".$name;
 
                     $s = "\tpublic function $name() {\n".
-                        "\t\treturn \$this->belongsTo('$relatedModel', '$foreignKey' );\n".
+                        "\t\treturn \$this->belongsTo( \\$relatedModel::class, '$foreignKey' );\n".
                         "\t}\n";
 
                     return $s;
                 }
+            } else if( $foreignKey == 'parent_id' ) {
+                $relatedModel = $this->options['namespace']."\\".str_singular( studly_case( $currentTablename ) );
+
+                $properties .= "\n * @property \\$relatedModel parent";
+
+                return "\tpublic function parent() {\n".
+                    "\t\treturn \$this->belongsTo( static::class, 'parent_id' );\n".
+                    "\t}\n";
             }
         }
 
@@ -407,10 +426,14 @@ class GenerateModelCommand extends ModelFromTableCommand
             return $this->getTableWithoutPrefix( $x );
         }, $tables );
 
-        $matches = preg_grep( "/".substr( $foreignKey, 0, strlen( $foreignKey ) - 3 )."/", $tables );
+        $foreignKey = str_plural( str_replace( '_id', '', $foreignKey ) );
+        $matches = preg_grep( "/".$foreignKey."/", $tables );
 
         if( $matches == null )
             return null;
+
+        if( in_array( $foreignKey, $matches ) )
+            return $foreignKey;
 
         if( array_values( $matches )[0] !== null )
             return array_values( $matches )[0];
@@ -525,6 +548,12 @@ class GenerateModelCommand extends ModelFromTableCommand
         $columns = array_map( function ( $c ) {
             return $c->Field;
         }, $columns );
+
+        // replaces for name column
+        foreach( [ 'title', 'name', 'key' ] as $p )
+            if( in_array( $p, $columns ) )
+                $stub = str_replace( '{{namecolumn}}', "protected static \$nameColumn = '$p';", $stub );
+        $stub = str_replace( '{{namecolumn}}', '', $stub );
 
         $priorities = [ 'title', 'name', 'key', 'id' ];
 

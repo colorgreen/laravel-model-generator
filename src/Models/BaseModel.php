@@ -4,6 +4,7 @@ namespace Colorgreen\Generator\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Validator;
+use Colorgreen\Generator\Traits\ExtendableModelTrait;
 
 /**
  * Class BaseModel
@@ -11,11 +12,20 @@ use Illuminate\Support\Facades\Validator;
  */
 class BaseModel extends Model
 {
+    use ExtendableModelTrait;
+
     protected static $fields = [];
 
-    protected static $rules = [];
-
     protected static $messages = [];
+
+    protected $validation = true;
+
+    /**
+     * Name column that will identifies items in data grid
+     *
+     * @var string
+     */
+    protected static $nameColumn = 'id';
 
     /**
      * Returns validator which validates model with $rules.
@@ -24,7 +34,7 @@ class BaseModel extends Model
      */
     public function getValidator( $data = null )
     {
-        return Validator::make( $data ?: $this->attributes, static::$rules, static::$messages );
+        return Validator::make( $data ?: $this->toArray(), $this->getRules(), static::$messages );
     }
 
     /**
@@ -52,7 +62,7 @@ class BaseModel extends Model
      */
     public function save( array $options = [] )
     {
-        if( !$this->validate() )
+        if( $this->validation && !$this->validate() )
             return false;
         return parent::save( $options );
     }
@@ -73,6 +83,14 @@ class BaseModel extends Model
     }
 
     /**
+     * @return array
+     */
+    public function getRules()
+    {
+        return [];
+    }
+
+    /**
      * @return bool
      */
     public function hasErrors()
@@ -88,21 +106,28 @@ class BaseModel extends Model
         return $this->casts;
     }
 
-
-    /**
-     * @return array
-     */
-    public static function getRules()
-    {
-        return static::$rules;
-    }
-
     /**
      * @return array
      */
     public static function getFields()
     {
         return static::$fields;
+    }
+
+    /**
+     * @return string
+     */
+    public static function getNameColumn()
+    {
+        return static::$nameColumn;
+    }
+
+    /**
+     * @param bool $validation
+     */
+    public function setValidation( bool $validation ): void
+    {
+        $this->validation = $validation;
     }
 
 }

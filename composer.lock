@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e1f977682f98e473b70ddb3001efca06",
+    "content-hash": "9911d2f01c2bb278e31a065b777f6c58",
     "packages": [
         {
             "name": "laracademy/generators",

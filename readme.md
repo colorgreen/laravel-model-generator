@@ -2,12 +2,14 @@
 
 Simple generator base on laracademy/generators, extending model generation. Generates model like in Yii framework. Create or update model base on existing table. 
 
-Create BaseModel and Model. If there are changes on table schema, regenerating (the same command) process will change only BaseModel (new rules, fields, etc), so write your logic in Model class to prevent it from overriding.
+Create BaseModel and Model. If there are changes on table schema, regenerating models (by the same command as first generation) process will affect only BaseModel (new rules, fields, etc), so write your logic in Model class to prevent it from overriding.
 
 Also base relations are generated to the models (relation ```hasOne()``` and ```belongsTo()``` ).
 
+Column ```parent_id``` will generate relation to itself, available by ```parent()```
+
 Base<xxx> extends Colorgreen\Generator\Models\BaseModel which provide on model validation.
-```
+```php
 $model = new Model();
 $model->email = "xxx";
 
@@ -19,8 +21,23 @@ if( !$model->save() )
 
 ```
 
-Example 'BaseModel'
+or use model validation in api controller, example store action
+
+```php
+public function store(Request $request)
+{
+    $model = new Model();
+    $model->fill($request->all());
+    $model->getValidator()->validate();
+
+    $model->save();
+
+    return response()->json( [ 'message' => __('Success'), 'redirect' => route('model.edit', [$model] ) ] );
+}
 ```
+
+Example 'BaseModel'
+```php
 <?php
 
 namespace App\Models\Base;
@@ -35,8 +52,8 @@ use Colorgreen\Generator\Models\BaseModel;
  * @property int count
  * @property string email
  
- * @property int redirect_type_id
- * @property \App\Models\RedirectType redirect_type
+ * @property int related_model_id
+ * @property \App\Models\RelatedModel related_model
  */
 class BasePage extends BaseModel
 {
@@ -54,9 +71,13 @@ class BasePage extends BaseModel
 		'email' => 'required|string|max:100|email'
 	];
 	
-	
-	public function redirect_type() {
-		return $this->belongsTo('App\Models\RedirectType', 'redirect_type_id' );
+	// samlple hasMany relation: check if relation shouldn't be OneToOne ( hasOne() )
+	public function pages() {
+    		return $this->hasMany('SmallElectron\Cms\Models\Page', 'redirect_type_id' );
+    	}
+    	
+	public function related_model() {
+		return $this->belongsTo( App\Models\RelatedModel::class, 'related_model_id' );
 	}
 
     protected $table = 'pages';
@@ -65,9 +86,13 @@ class BasePage extends BaseModel
 
     protected $hidden = [];
 
-    protected $casts = [];
+    protected $casts = [ 'active' => 'boolean', 'count' => 'integer', 'related_model_id' => 'integer' ];
 
     protected $dates = ['created_at', 'updated_at'];
+    
+    // set in to 'false' if model shouldn't be validated during save.
+    // you can turn off validation on specific model using $model->setValidation(false)
+    protected $validation = true;
 }
 ```
 
@@ -119,10 +144,11 @@ You can use this command to generate a single table, multiple tables or all of y
   * Use if you want to have custom BaseModel. E.g. --base=\App\Models\MyBaseModel.
 * --prefix=
   * Set prefix of tables. E.g table 'cms_user_permissions' generate model 'UserPermission'
+  * Note that using --prefix option with --all will generate models only for tables that starts from prefix
 * --all
   * If this flag is present, then the table command will be ignored.
   * This will generate a model for **all** tables found in your database.
-  * _please note that this command will only ignore the `migrations` table and no model will be generate for it_
+  * If --prefix is set relations will be made only within prefixed tables
 * --connection=
   * by default if this option is omitted then the generate will use the default connection found in `config/database.php`
   * To specify a connection ensure that it exists in your `config/database.php` first.
@@ -162,6 +188,9 @@ php artisan generate:modelfromtable --table=users,posts
 ```
 php artisan generate:modelfromtable --all
 ```
+
+For tables: blog_posts, blog_comments, shop_products, users, command ```php artisan generate:modelfromtable --all --prefix=blog_``` 
+will generate models olny for blog_posts and blog_comments
 
 ### Changing to another connection found in `database.php` and generating models for all tables
 
