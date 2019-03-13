@@ -172,7 +172,6 @@ class GenerateModelCommand extends ModelFromTableCommand
         if( empty( $this->options['prefix'] ) )
             return parent::getAllTables();
         return parent::getAllTables()->filter( function ( $v ) {
-            var_dump( $v );
             return strpos( $v, $this->options['prefix'] ) !== false;
         } );
     }
@@ -285,9 +284,9 @@ class GenerateModelCommand extends ModelFromTableCommand
 //            if( $column->Default !== null )
             $this->defaults .= ( strlen( $this->defaults ) > 0 ? ', ' : '' )
                 ."\n\t\t'$field' => "
-                .( $type == 'string' ? '\'' : '' )
+                .( $type == 'string' && $column->Default !== null ? '\'' : '' )
                 .( $column->Default ?: 'null' )
-                .( $type == 'string' ? '\'' : '' );
+                .( $type == 'string' && $column->Default !== null ? '\'' : '' );
 
             $this->rules .= ( strlen( $this->rules ) > 0 ? ', ' : '' )."\n\t\t\t'$field' => \"".$this->getRules( $column )."\"";
             $this->properties .= "\n * @property ".$type." ".$field;
