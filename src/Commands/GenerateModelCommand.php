@@ -285,7 +285,7 @@ class GenerateModelCommand extends ModelFromTableCommand
             $this->defaults .= ( strlen( $this->defaults ) > 0 ? ', ' : '' )
                 ."\n\t\t'$field' => "
                 .( $type == 'string' && $column->Default !== null ? '\'' : '' )
-                .( $column->Default ?: 'null' )
+                .( $column->Default !== null ? $column->Default : 'null' )
                 .( $type == 'string' && $column->Default !== null ? '\'' : '' );
 
             $this->rules .= ( strlen( $this->rules ) > 0 ? ', ' : '' )."\n\t\t\t'$field' => \"".$this->getRules( $column )."\"";
