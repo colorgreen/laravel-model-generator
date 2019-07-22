@@ -18,6 +18,8 @@ class BaseModel extends Model
 
     protected static $messages = [];
 
+    protected $errors = [];
+
     protected $validation = true;
 
     /**
