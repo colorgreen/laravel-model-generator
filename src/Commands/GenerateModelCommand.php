@@ -31,6 +31,7 @@ class GenerateModelCommand extends ModelFromTableCommand
     public $modelRelations;
 
     protected $currentTable;
+    protected $prefixes = [];
 
     /**
      * Create a new command instance.
@@ -51,6 +52,7 @@ class GenerateModelCommand extends ModelFromTableCommand
             'all' => false,
             'prefix' => '',
         ];
+
     }
 
     /**
@@ -62,6 +64,9 @@ class GenerateModelCommand extends ModelFromTableCommand
     {
         $this->doComment( 'Starting Model Generate Command', true );
         $this->getOptions();
+
+        $this->prefixes = $this->findPrefixes();
+
 
         $tables = [];
         $path = $this->options['folder'];
@@ -167,9 +172,9 @@ class GenerateModelCommand extends ModelFromTableCommand
         $this->info( 'Complete' );
     }
 
-    public function getAllTables()
+    public function getAllTables($allEvenWithoutPrefix = false)
     {
-        if( empty( $this->options['prefix'] ) )
+        if( $allEvenWithoutPrefix || empty( $this->options['prefix'] ) )
             return parent::getAllTables();
         return parent::getAllTables()->filter( function ( $v ) {
             return strpos( $v, $this->options['prefix'] ) !== false;
@@ -320,7 +325,7 @@ class GenerateModelCommand extends ModelFromTableCommand
                 $properties .= "\n * @property \\".$relatedModel."[] ".$name;
 
                 $s .= "\n\tpublic function $name() {\n".
-                    "\t\treturn \$this->hasMany('$relatedModel', '$searchedColumnName' );\n".
+                    "\t\treturn \$this->hasMany( \\$relatedModel::class, '$searchedColumnName' );\n".
                     "\t}\n";
             }
         }
@@ -426,24 +431,27 @@ class GenerateModelCommand extends ModelFromTableCommand
 
     protected function getTableNameByForeignKey( $foreignKey )
     {
-        $tables = $this->getAllTables()->toArray();
+        $tables = $this->getAllTables(true)->toArray();
         rsort( $tables );
-        $tables = array_map( function ( $x ) {
-            return $this->getTableWithoutPrefix( $x );
-        }, $tables );
 
         $foreignKey = str_plural( str_replace( '_id', '', $foreignKey ) );
-        $matches = preg_grep( "/".$foreignKey."/", $tables );
+        $matches = preg_grep( "/^[a-zA-Z]*_".$foreignKey."/", $tables );
 
         if( $matches == null )
             return null;
 
-        if( in_array( $foreignKey, $matches ) )
-            return $foreignKey;
+        $matches = array_values($matches);
 
-        if( array_values( $matches )[0] !== null )
-            return array_values( $matches )[0];
-        return null;
+        if( count($matches) == 1 )
+            return $matches[0];
+        else{
+            while(1){
+                $t = $this->ask('Tables that match to foreign keys are: '.implode(',', $matches ).'. Write full table name that you want to choose' );
+                if( in_array($t, $matches ) )
+                    return $t;
+                $this->error('Bad tablename');
+            }
+        }
     }
 
     public function getTableColumns( $table )
@@ -516,7 +524,39 @@ class GenerateModelCommand extends ModelFromTableCommand
 
     protected function getTableWithoutPrefix( $table )
     {
-        return preg_replace( "/^".$this->options['prefix']."/", '', $table );
+        if( preg_match( '/^([a-zA-Z]*_)[a-zA-Z_]+$/', $table, $re ) ) { //potential prefixes table
+            if( in_array( $re[1], $this->prefixes ) )
+                return preg_replace( "/^".$re[1]."/", '', $table );
+        }
+
+        return $table;
+    }
+
+    private function countPrefixesInTables( $prefix, $tables )
+    {
+        return count( array_filter( $tables, function ( $x ) use ( $prefix ) {
+            return strpos( $x, $prefix ) === 0;
+        } ) );
+    }
+
+    private function findPrefixes()
+    {
+        $prefixes = [ $this->options['prefix'] ];
+        $ignoredPrefixes = [];
+        $tables = $this->getAllTables(true)->toArray();
+
+        foreach( $tables as $table ) {
+            if( preg_match( '/^([a-zA-Z]*_)[a-zA-Z_]+$/', $table, $re ) ) { //potential prefixes table
+                if( $this->countPrefixesInTables( $re[1], $tables ) > 1 ) {
+                    if( !in_array( $re[1], $prefixes ) ) {
+                        if( !in_array( $re[1], $ignoredPrefixes ) && $this->confirm( 'Found potential prefix \''.$re[1].'\'. Is this correct, do you want use it?', true ) )
+                            $prefixes[] = $re[1];
+                        else $ignoredPrefixes[] = $re[1];
+                    }
+                }
+            }
+        }
+        return $prefixes;
     }
 
     protected function makeDirectory( $path )

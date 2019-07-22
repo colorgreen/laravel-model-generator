@@ -166,7 +166,7 @@ You can use this command to generate a single table, multiple tables or all of y
 ### Generating a single table
 
 ```
-php artisan generate:modelfromtable --table=users
+php artisan cgenerator:modelfromtable --table=users
 
 ```
 Will generate model with name User
@@ -174,19 +174,19 @@ Will generate model with name User
 ### Generating a single table with custom model name
 
 ```
-php artisan generate:modelfromtable --model_name=MyUser --table=users
+php artisan cgenerator:modelfromtable --model_name=MyUser --table=users
 ```
 
 ### Generating a multiple tables
 
 ```
-php artisan generate:modelfromtable --table=users,posts
+php artisan cgenerator:modelfromtable --table=users,posts
 ```
 
 ### Generating all tables
 
 ```
-php artisan generate:modelfromtable --all
+php artisan cgenerator:modelfromtable --all
 ```
 
 For tables: blog_posts, blog_comments, shop_products, users, command ```php artisan generate:modelfromtable --all --prefix=blog_``` 
@@ -195,13 +195,13 @@ will generate models olny for blog_posts and blog_comments
 ### Changing to another connection found in `database.php` and generating models for all tables
 
 ```
-php artisan generate:modelfromtable --connection=spark --all
+php artisan cgenerator:modelfromtable --connection=spark --all
 ```
 
 ### Changing the folder where to /app/Models
 
 ```
-php artisan generate:modelfromtable --table=user --folder=app\Models
+php artisan cgenerator:modelfromtable --table=user --folder=app\Models
 ```
 
 ## Credits
