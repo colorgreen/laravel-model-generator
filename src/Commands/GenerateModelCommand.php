@@ -172,7 +172,7 @@ class GenerateModelCommand extends ModelFromTableCommand
         $this->info( 'Complete' );
     }
 
-    public function getAllTables($allEvenWithoutPrefix = false)
+    public function getAllTables( $allEvenWithoutPrefix = false )
     {
         if( $allEvenWithoutPrefix || empty( $this->options['prefix'] ) )
             return parent::getAllTables();
@@ -348,6 +348,8 @@ class GenerateModelCommand extends ModelFromTableCommand
         } else {
             if( $columnType == 'longtext' )
                 return 'array';
+            if( in_array( $columnType, [ 'datetime', 'time', 'date' ] ) )
+                return $columnType;
         }
         return 'string';
     }
@@ -431,7 +433,7 @@ class GenerateModelCommand extends ModelFromTableCommand
 
     protected function getTableNameByForeignKey( $foreignKey )
     {
-        $tables = $this->getAllTables(true)->toArray();
+        $tables = $this->getAllTables( true )->toArray();
         rsort( $tables );
 
         $foreignKey = str_plural( str_replace( '_id', '', $foreignKey ) );
@@ -440,16 +442,16 @@ class GenerateModelCommand extends ModelFromTableCommand
         if( $matches == null )
             return null;
 
-        $matches = array_values($matches);
+        $matches = array_values( $matches );
 
-        if( count($matches) == 1 )
+        if( count( $matches ) == 1 )
             return $matches[0];
-        else{
-            while(1){
-                $t = $this->ask('Tables that match to foreign keys are: '.implode(',', $matches ).'. Write full table name that you want to choose' );
-                if( in_array($t, $matches ) )
+        else {
+            while( 1 ) {
+                $t = $this->ask( 'Tables that match to foreign keys are: '.implode( ',', $matches ).'. Write full table name that you want to choose' );
+                if( in_array( $t, $matches ) )
                     return $t;
-                $this->error('Bad tablename');
+                $this->error( 'Bad tablename' );
             }
         }
     }
@@ -543,7 +545,7 @@ class GenerateModelCommand extends ModelFromTableCommand
     {
         $prefixes = [ $this->options['prefix'] ];
         $ignoredPrefixes = [];
-        $tables = $this->getAllTables(true)->toArray();
+        $tables = $this->getAllTables( true )->toArray();
 
         foreach( $tables as $table ) {
             if( preg_match( '/^([a-zA-Z]*_)[a-zA-Z_]+$/', $table, $re ) ) { //potential prefixes table
