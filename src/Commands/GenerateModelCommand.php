@@ -153,6 +153,8 @@ class GenerateModelCommand extends ModelFromTableCommand
             $basestub = $this->replaceModuleInformation( $basestub, $model );
             $basestub = $this->replaceRulesAndProperties( $basestub, $this->columns, $tablename );
             $basestub = $this->replaceConnection( $basestub, $this->options['connection'] );
+            $basestub = $this->replacePrimaryKey( $basestub, $columns );
+
 
             // writing stub out
 
@@ -617,5 +619,25 @@ class GenerateModelCommand extends ModelFromTableCommand
         if( $first !== null )
             return str_replace( '{{label}}', "\$this->$first", $stub );
         return str_replace( '{{label}}', '', $stub );
+    }
+
+    private function replacePrimaryKey( $stub, $columns )
+    {
+        $replacement = "";
+
+        foreach( $columns as $column ){
+            if( $column->Key === 'PRI' ){
+                if( $column->Field !== 'id' )
+                    $replacement .= "\n\tprotected \$primaryKey = '".$column->Field."';\n";
+                $type = $this->getPhpType($column->Type);
+                if($type != 'integer')
+                {
+                    $replacement .= "\n\tprotected \$keyType = '$type';\n";
+                    $replacement .= "\n\tpublic \$incrementing = false;\n";
+                }
+            }
+        }
+
+        return str_replace( '{{primarykey}}', $replacement, $stub );
     }
 }

@@ -14,6 +14,7 @@ namespace {{modelnamespace}}\Base;
 class Base{{class}} extends {{baseclass}}
 {
     {{connection}}
+    {{primarykey}}
 
     protected $attributes = [{{defaults}}];
 
