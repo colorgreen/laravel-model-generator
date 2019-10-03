@@ -15,5 +15,12 @@
         "psr-4": {
             "Colorgreen\\Generator\\": "src/"
         }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Colorgreen\\Generator\\Providers\\GeneratorServiceProvider"
+            ]
+        }
     }
 }

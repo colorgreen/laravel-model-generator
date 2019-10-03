@@ -96,39 +96,15 @@ class BasePage extends BaseModel
 }
 ```
 
-
-
-## Usage
-
-### Step 1: Install through Composer
+## Installation
 
 ```
 composer require colorgreen/laravel-model-generator
 ```
 
-### Step 2: Add the Service Provider
-The easiest method is to add the following into your `config/app.php` file
+## Usage
 
-```php
-Colorgreen\Generator\GeneratorServiceProvider::class,
-```
-
-### Step 3: Artisan Command
-Now that we have added the generator to our project the last thing to do is run Laravel's Arisan command
-
-```
-php artisan
-```
-
-You will see the following in the list
-
-```
-cgenerator:modelfromtable
-```
-
-## Commands
-
-### generate:modelfromtable
+### cgenerator:modelfromtable
 
 This command will read your database table and generate a model based on that table structure. The fillable fields, casts, dates and even namespacing will be filled in automatically.
 
@@ -167,7 +143,6 @@ You can use this command to generate a single table, multiple tables or all of y
 
 ```
 php artisan cgenerator:modelfromtable --table=users
-
 ```
 Will generate model with name User
 
@@ -189,8 +164,14 @@ php artisan cgenerator:modelfromtable --table=users,posts
 php artisan cgenerator:modelfromtable --all
 ```
 
+### Generating models from prefixed tables tables
+
+```
+php artisan cgenerator:modelfromtable --all --prefix=foo_
+```
+
 For tables: blog_posts, blog_comments, shop_products, users, command ```php artisan generate:modelfromtable --all --prefix=blog_``` 
-will generate models olny for blog_posts and blog_comments
+will generate models only for blog_posts and blog_comments, model `Post` and `Comment`
 
 ### Changing to another connection found in `database.php` and generating models for all tables
 
