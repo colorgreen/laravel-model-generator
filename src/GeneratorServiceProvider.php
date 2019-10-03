@@ -1,6 +1,6 @@
 <?php
 
-namespace Colorgreen\Generator;
+namespace Colorgreen\Generator\Providers;
 
 use Colorgreen\Generator\Commands\GenerateModelCommand;
 use Colorgreen\Generator\Validators\UniqueValidator;
