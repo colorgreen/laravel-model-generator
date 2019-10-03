@@ -32,6 +32,7 @@ class GenerateModelCommand extends ModelFromTableCommand
 
     protected $currentTable;
     protected $prefixes = [];
+    protected $modelPrimaryKey = 'id';
 
     /**
      * Create a new command instance.
@@ -137,6 +138,8 @@ class GenerateModelCommand extends ModelFromTableCommand
 
             // fix these up
             $columns = $this->describeTable( $table );
+
+            $this->findPrimaryKey( $columns );
 
             $this->columns = collect( $columns );
 
@@ -388,7 +391,8 @@ class GenerateModelCommand extends ModelFromTableCommand
         }
 
         if( $info->Key == "UNI" )
-            $rules .= '|unique:'.$this->currentTable.','.$info->Field.',{$this->id}';
+            $rules .= '|unique_model:'.$this->currentTable.','.$info->Field.',{$this->id}'
+                .( $this->modelPrimaryKey != 'id' ? ','.$this->modelPrimaryKey : '' );
 
         return $rules;
     }
@@ -574,6 +578,12 @@ class GenerateModelCommand extends ModelFromTableCommand
         return $path;
     }
 
+    protected function findPrimaryKey( $columns ): void
+    {
+        foreach( $columns as $column )
+            if( $column->Key == 'PRI' )
+                $this->modelPrimaryKey = $column->Field;
+    }
 
     /**
      * Get the stub file for the generator.
@@ -627,10 +637,12 @@ class GenerateModelCommand extends ModelFromTableCommand
     {
         $replacement = "";
 
+        if( $this->modelPrimaryKey !== 'id' )
+            $replacement .= "\n\tprotected \$primaryKey = '".$this->modelPrimaryKey."';\n";
+
         foreach( $columns as $column ) {
-            if( $column->Key === 'PRI' ) {
-                if( $column->Field !== 'id' )
-                    $replacement .= "\n\tprotected \$primaryKey = '".$column->Field."';\n";
+            if( $column->Key === 'PRI' && $this->modelPrimaryKey == $column->Field ) {
+
                 $type = $this->getPhpType( $column->Type );
                 if( $type != 'integer' ) {
                     $replacement .= "\n\tprotected \$keyType = '$type';\n";

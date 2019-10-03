@@ -3,6 +3,8 @@
 namespace Colorgreen\Generator;
 
 use Colorgreen\Generator\Commands\GenerateModelCommand;
+use Colorgreen\Generator\Validators\UniqueValidator;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
 
 class GeneratorServiceProvider extends ServiceProvider
@@ -19,6 +21,8 @@ class GeneratorServiceProvider extends ServiceProvider
                 GenerateModelCommand::class
             ]);
         }
+
+        Validator::extend('unique_model', UniqueValidator::class, 'Value already exist in database');
     }
 
     /**
