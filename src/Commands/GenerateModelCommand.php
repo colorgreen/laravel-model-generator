@@ -358,9 +358,11 @@ class GenerateModelCommand extends ModelFromTableCommand
 
     public function getRules( $info )
     {
-        if( $info->Field == 'id' )
-            $rules = 'nullable';
-        else $rules = $info->Null == 'YES' ? 'nullable' : 'required';
+        $rules = '';
+
+        if( $info->Field == 'id' ) {
+            $rules = $this->getPhpType( $info->Type ) == 'integer' ? 'nullable' : 'required';
+        } else $rules = $info->Null == 'YES' ? 'nullable' : 'required';
 
         $length = $this->getLenght( $info->Type );
 
@@ -625,13 +627,12 @@ class GenerateModelCommand extends ModelFromTableCommand
     {
         $replacement = "";
 
-        foreach( $columns as $column ){
-            if( $column->Key === 'PRI' ){
+        foreach( $columns as $column ) {
+            if( $column->Key === 'PRI' ) {
                 if( $column->Field !== 'id' )
                     $replacement .= "\n\tprotected \$primaryKey = '".$column->Field."';\n";
-                $type = $this->getPhpType($column->Type);
-                if($type != 'integer')
-                {
+                $type = $this->getPhpType( $column->Type );
+                if( $type != 'integer' ) {
                     $replacement .= "\n\tprotected \$keyType = '$type';\n";
                     $replacement .= "\n\tpublic \$incrementing = false;\n";
                 }
