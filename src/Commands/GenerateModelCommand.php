@@ -298,7 +298,7 @@ class GenerateModelCommand extends ModelFromTableCommand
                 .( $column->Default !== null ? $column->Default : 'null' )
                 .( $type == 'string' && $column->Default !== null ? '\'' : '' );
 
-            $this->rules .= ( strlen( $this->rules ) > 0 ? ', ' : '' )."\n\t\t\t'$field' => \"".$this->getRules( $column )."\"";
+            $this->rules .= ( strlen( $this->rules ) > 0 ? ', ' : '' )."\n\t\t\t'$field' => ".$this->getRules( $column )."";
             $this->properties .= "\n * @property ".$type." ".$field;
             $this->modelRelations .= $this->getRelationTemplate( $column, $this->properties, $tablename );
         }
@@ -390,11 +390,13 @@ class GenerateModelCommand extends ModelFromTableCommand
                 $rules .= "|email";
         }
 
-        if( $info->Key == "UNI" )
-            $rules .= '|unique_model:'.$this->currentTable.','.$info->Field.',{$this->id}'
-                .( $this->modelPrimaryKey != 'id' ? ','.$this->modelPrimaryKey : '' );
-
-        return $rules;
+//        dd($info);
+        if( $info->Key !== 'UNI' ){
+            return '"'.$rules.'"';
+        }
+        else {
+            return "[ '".str_replace('|', "', '", $rules)."', new \Colorgreen\Generator\Rules\UniqueModel(\$this) ]";
+        }
     }
 
     public function getRelationTemplate( $column, &$properties, $currentTablename )

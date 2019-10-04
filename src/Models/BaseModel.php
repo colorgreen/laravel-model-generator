@@ -132,4 +132,11 @@ class BaseModel extends Model
         $this->validation = $validation;
     }
 
+    /**
+     * @return string
+     */
+    public function getPrimaryKey()
+    {
+        return $this->primaryKey;
+    }
 }
