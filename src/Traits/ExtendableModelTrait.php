@@ -12,6 +12,7 @@ namespace Colorgreen\Generator\Traits;
 
 use BadMethodCallException;
 use Closure;
+use Illuminate\Support\Str;
 
 trait ExtendableModelTrait
 {
@@ -88,7 +89,7 @@ trait ExtendableModelTrait
      */
     public function hasGetMutator($key)
     {
-        if (isset(static::$externalMethods['get' . studly_case($key) . 'Attribute'])) {
+        if (isset(static::$externalMethods['get' . Str::studly($key) . 'Attribute'])) {
             return true;
         }
         // Keep parent functionality.
@@ -103,7 +104,7 @@ trait ExtendableModelTrait
      */
     public function hasSetMutator($key)
     {
-        if (isset(static::$externalMethods['set' . studly_case($key) . 'Attribute'])) {
+        if (isset(static::$externalMethods['set' . Str::studly($key) . 'Attribute'])) {
             return true;
         }
         // Keep parent functionality.
