@@ -318,7 +318,7 @@ class GenerateModelCommand extends ModelFromTableCommand
     public function getRelationsForModel( &$properties, $tablename )
     {
         $s = '';
-        $searchedColumnName = snake_case( Str::singular( $tablename )."_id" );
+        $searchedColumnName = Str::snake( Str::singular( $tablename )."_id" );
 
         foreach( $this->getAllTables() as $table ) {
             if( in_array( $searchedColumnName, $this->getTableColumns( $table ) ) ) {
@@ -447,7 +447,7 @@ class GenerateModelCommand extends ModelFromTableCommand
         $tables = $this->getAllTables( true )->toArray();
         rsort( $tables );
 
-        $foreignKey = str_plural( str_replace( '_id', '', $foreignKey ) );
+        $foreignKey = Str::plural( str_replace( '_id', '', $foreignKey ) );
         $matches = preg_grep( "/^[a-zA-Z]*_".$foreignKey."/", $tables );
 
         if( $matches == null )
