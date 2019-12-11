@@ -9,6 +9,7 @@
 
 namespace Colorgreen\Generator\Commands;
 
+use Illuminate\Support\Str;
 use Laracademy\Generators\Commands\ModelFromTableCommand;
 use Illuminate\Support\Facades\Schema;
 
@@ -120,7 +121,7 @@ class GenerateModelCommand extends ModelFromTableCommand
             $tablename = $this->getTableWithoutPrefix( $tablename );
 
             // generate the file name for the model based on the table name
-            $classname = $this->options['name'] != '' ? $this->options['name'] : studly_case( str_singular( $tablename ) );
+            $classname = $this->options['name'] != '' ? $this->options['name'] : Str::studly( Str::singular( $tablename ) );
             $fullPath = "$path/$classname.php";
             $fullBasePath = "$basepath/Base$classname.php";
 
@@ -266,7 +267,7 @@ class GenerateModelCommand extends ModelFromTableCommand
      */
     public function replaceClassName( $stub, $tableName )
     {
-        return str_replace( '{{class}}', studly_case( str_singular( $tableName ) ), $stub );
+        return str_replace( '{{class}}', Str::studly( Str::singular( $tableName ) ), $stub );
     }
 
     /**
@@ -279,7 +280,7 @@ class GenerateModelCommand extends ModelFromTableCommand
      */
     public function replaceBaseClassName( $stub, $baseclass )
     {
-        return str_replace( '{{baseclass}}', studly_case( $baseclass ), $stub );
+        return str_replace( '{{baseclass}}', Str::studly( $baseclass ), $stub );
     }
 
     public function replaceRulesAndProperties( $stub, $columns, $tablename )
@@ -317,15 +318,15 @@ class GenerateModelCommand extends ModelFromTableCommand
     public function getRelationsForModel( &$properties, $tablename )
     {
         $s = '';
-        $searchedColumnName = snake_case( str_singular( $tablename )."_id" );
+        $searchedColumnName = snake_case( Str::singular( $tablename )."_id" );
 
         foreach( $this->getAllTables() as $table ) {
             if( in_array( $searchedColumnName, $this->getTableColumns( $table ) ) ) {
                 $table = $this->getTableWithoutPrefix( $table );
 
-//                $name = str_singular($table);
+//                $name = Str::singular($table);
                 $name = $table;
-                $relatedModel = $this->options['namespace']."\\".studly_case( str_singular( $table ) );
+                $relatedModel = $this->options['namespace']."\\".Str::studly( Str::singular( $table ) );
 
                 $properties .= "\n * @property \\".$relatedModel."[] ".$name;
 
@@ -413,10 +414,10 @@ class GenerateModelCommand extends ModelFromTableCommand
                 $tablename = $this->getTableWithoutPrefix( $tablename );
 
                 if( $tablename !== null ) {
-                    $modelname = str_singular( studly_case( $tablename ) );
+                    $modelname = Str::singular( Str::studly( $tablename ) );
                     $relatedModel = $this->options['namespace']."\\".$modelname;
 
-                    $name = str_singular( $tablename );
+                    $name = Str::singular( $tablename );
 
                     $properties .= "\n * @property \\".$relatedModel." ".$name;
 
@@ -427,7 +428,7 @@ class GenerateModelCommand extends ModelFromTableCommand
                     return $s;
                 }
             } else if( $foreignKey == 'parent_id' ) {
-                $relatedModel = $this->options['namespace']."\\".str_singular( studly_case( $currentTablename ) );
+                $relatedModel = $this->options['namespace']."\\".Str::singular( Str::studly( $currentTablename ) );
 
                 $properties .= "\n * @property \\$relatedModel parent";
 
